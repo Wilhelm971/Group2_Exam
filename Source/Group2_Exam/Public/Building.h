@@ -27,6 +27,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
 	float StoredPower;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Building")
+	int32 Cost = 50;
+
 	virtual void ReceivePower(float amount);
 	virtual void ApplyPower(float amount);
 };

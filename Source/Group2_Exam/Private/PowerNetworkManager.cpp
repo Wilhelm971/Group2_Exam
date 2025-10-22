@@ -1,3 +1,4 @@
+#include "PowerNetworkManager.h"
 
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -5,7 +6,6 @@
 #include "Building.h"
 #include "BaseHQ.h"
 
-#include "PowerNetworkManager.h"
 
 // Sets default values
 APowerNetworkManager::APowerNetworkManager()

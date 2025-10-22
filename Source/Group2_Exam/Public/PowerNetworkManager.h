@@ -45,7 +45,7 @@ public:
 
 	// HQ (exposed so designer can assign)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Power Network")
-	ABaseHQ* HQReference = nullptr;
+	ABaseHQ* HQReference;
 
 	// Pulse settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Power Network")
