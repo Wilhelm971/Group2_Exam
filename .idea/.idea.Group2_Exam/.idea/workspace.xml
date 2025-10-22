@@ -20,6 +20,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Source/Group2_Exam/Private/PowerNetworkManager.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/Group2_Exam/Public/PowerNetworkManager.h" root0="FORCE_HIGHLIGHTING" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 0
@@ -136,6 +140,7 @@
       <updated>1760103321932</updated>
       <workItem from="1760103324559" duration="4892000" />
       <workItem from="1760697999569" duration="652000" />
+      <workItem from="1761121996331" duration="5915000" />
     </task>
     <servers />
   </component>

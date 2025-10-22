@@ -26,6 +26,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
 	float StoredPower;
-	
+
+	virtual void ReceivePower(float amount);
 	virtual void ApplyPower(float amount);
 };

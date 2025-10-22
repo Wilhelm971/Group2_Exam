@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Building.h"
 #include "BaseHQ.generated.h"
 
 UCLASS()
-class GROUP2_EXAM_API ABaseHQ : public AActor
+class GROUP2_EXAM_API ABaseHQ : public ABuilding
 {
 	GENERATED_BODY()
 	

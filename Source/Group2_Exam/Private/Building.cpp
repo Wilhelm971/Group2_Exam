@@ -25,6 +25,10 @@ void ABuilding::OnReceivePower(float amount)
 	ApplyPower(amount);
 }
 
+void ABuilding::ReceivePower(float amount)
+{
+}
+
 void ABuilding::ApplyPower(float amount)
 {
 	StoredPower += amount;
