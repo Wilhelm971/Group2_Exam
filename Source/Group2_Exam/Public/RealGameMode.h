@@ -13,5 +13,9 @@ UCLASS()
 class GROUP2_EXAM_API ARealGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
+
+public:
+	ARealGameMode();
+
 	
 };
