@@ -12,24 +12,29 @@ class GROUP2_EXAM_API ABuilding : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ABuilding();
 	
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	// Called when network delivers power to this building
-	virtual void OnReceivePower(float amount);
-
+	// Whether this building needs power to operate
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
 	bool bNeedsPower;
 
+	// Stored power available to this building
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
 	float StoredPower;
 
+	// Cost in currency to buy/place
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Building")
-	int32 Cost = 50;
+	int32 BuildCost;
 
-	virtual void ReceivePower(float amount);
-	virtual void ApplyPower(float amount);
+	// Called by PowerNetworkManager when a pulse arrives
+	virtual void ReceivePower(float Amount);
+
+	// Hook for subclasses (cannon) to react immediately
+	virtual void OnReceivePower(float Amount);
+
+	// Called every tick (if you enable)
+	virtual void Tick(float DeltaTime) override;
+
 };

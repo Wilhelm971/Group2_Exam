@@ -17,10 +17,10 @@ struct FBuildingConnection
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ABuilding* BuildingA = nullptr;
+	ABuilding* A = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ABuilding* BuildingB = nullptr;
+	ABuilding* B = nullptr;
 };
 
 
@@ -37,57 +37,54 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-
-	virtual void Tick(float DeltaTime) override;
-	// Editor-exposed manual connection list
+	// Manual connections (editor-friendly). Used at BeginPlay to build internal graph.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Power Network")
 	TArray<FBuildingConnection> ManualConnections;
 
-	// HQ (exposed so designer can assign)
+	// Pulse travel speed (units per second) used for visual travel time or per-edge delay multiplier
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Power Network")
-	ABaseHQ* HQReference;
-
-	// Pulse settings
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Power Network")
-	float PulseInterval = 2.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Power Network")
-	float PowerPerPulse = 100.f;
-
-
-
-	// Public API
-	UFUNCTION(BlueprintCallable)
-	void RegisterBuilding(ABuilding* Building);
-
-	UFUNCTION(BlueprintCallable)
-	void UnregisterBuilding(ABuilding* Building);
-
-	UFUNCTION(BlueprintCallable)
-	void AddConnection(ABuilding* A, ABuilding* B);
-
-	UFUNCTION(BlueprintCallable)
-	void RemoveConnection(ABuilding* A, ABuilding* B);
-
-	UFUNCTION(BlueprintCallable)
-	void PulsePower();
-
-private:
-	// ------------------------------
-	// Internal graph: do NOT mark as UPROPERTY (UHT limitation)
-	// ------------------------------
+	float TravelDelayPerEdge;
+	
+	// Internal adjacency list (not a UPROPERTY due to UHT limits)
 	TMap<ABuilding*, TArray<ABuilding*>> AdjacencyList;
 
-	// Registered building list (this also should not be UPROPERTY if it stores TArray of non-UProperty-friendly types)
+	// Registered buildings (dynamically added)
 	TArray<ABuilding*> RegisteredBuildings;
 
+	// Register/unregister buildings at runtime
+	UFUNCTION(BlueprintCallable, Category="Power Network")
+	void RegisterBuilding(ABuilding* Building);
+
+	UFUNCTION(BlueprintCallable, Category="Power Network")
+	void UnregisterBuilding(ABuilding* Building);
 	
-	// Helper to build adjacency list from ManualConnections at BeginPlay (or in editor-time utility)
+	// Add / remove connection at runtime
+	UFUNCTION(BlueprintCallable, Category="Power Network")
+	void AddConnection(ABuilding* A, ABuilding* B);
+
+	UFUNCTION(BlueprintCallable, Category="Power Network")
+	void RemoveConnection(ABuilding* A, ABuilding* B);
+
+	// Pulse from a start building (HQ) with a given amount. This starts a delayed propagation so you can see transfer.
+	UFUNCTION(BlueprintCallable, Category="Power Network")
+	void PulsePower(ABuilding* Start, float InitialAmount);
+
+	// Debug draw adjacency
+	UFUNCTION(BlueprintCallable, Category="Power Network")
+	void DrawNetworkDebug(float Duration = 2.0f);
+
+
+private:
+	// Build adjacency from ManualConnections (called in BeginPlay)
 	void BuildAdjacencyFromManualConnections();
 
-	/** Helper: sends power recursively */
-	void PropagatePower(ABuilding* From, float RemainingPower);
+	// Internal: schedule delivery to neighbor with delay
+	void ScheduleDeliver(ABuilding* Target, float Amount, float Delay);
 
-	/** Timer handle for repeated pulses */
-	FTimerHandle PulseTimerHandle;
+	// Internal: actual deliver called by timer
+	void DeliverPower(ABuilding* Target, float Amount);
+
+	// Helper: recursively propagate from Start with BFS, but schedule each hop slightly delayed to show travel
+	void StartPropagationWithDelays(ABuilding* Start, float InitialAmount);
+
 };

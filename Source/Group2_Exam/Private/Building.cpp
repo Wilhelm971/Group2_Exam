@@ -2,37 +2,43 @@
 
 
 #include "Building.h"
+#include "Engine/Engine.h"
 
-// Sets default values
+
 ABuilding::ABuilding()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-
 	bNeedsPower = true;
-
+	StoredPower = 0.0f;
+	BuildCost = 50;
 }
 
-// Called when the game starts or when spawned
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-void ABuilding::OnReceivePower(float amount)
+void ABuilding::ReceivePower(float Amount)
 {
-	ApplyPower(amount);
+	if (!bNeedsPower || Amount <= 0.f) return;
+	StoredPower += Amount;
+	OnReceivePower(Amount);
+
+	// Debug
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.2f, FColor::Cyan,
+			FString::Printf(TEXT("%s received %.1f power (stored %.1f)"), *GetName(), Amount, StoredPower));
+	}
 }
 
-void ABuilding::ReceivePower(float amount)
+void ABuilding::OnReceivePower(float Amount)
 {
+	// base: nothing extra
 }
 
-void ABuilding::ApplyPower(float amount)
+void ABuilding::Tick(float DeltaTime)
 {
-	StoredPower += amount;
+	Super::Tick(DeltaTime);
 }
-
-
-

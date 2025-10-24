@@ -2,19 +2,21 @@
 
 
 #include "BaseHQ.h"
+#include "PowerNetworkManager.h"
+#include "Engine/World.h"
+#include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ABaseHQ::ABaseHQ()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
-	MaxHealth = 100.0f;
+ 	PrimaryActorTick.bCanEverTick = false;
+	MaxHealth = 200.0f;
 	CurrentHealth = MaxHealth;
-
 	PowerPerPulse = 50.0f;
-	PulseInterval = 3.0f;
+	PulseInterval = 2.0f;
 
-	ConnectionRange = 800.0f;
+	ConnectionRange = 900.0f;
 
 }
 
@@ -22,36 +24,61 @@ ABaseHQ::ABaseHQ()
 void ABaseHQ::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// try auto-find manager if not assigned
+	if (!PowerNetworkManager)
+	{
+		TArray<AActor*> Found;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerNetworkManager::StaticClass(), Found);
+		if (Found.Num() > 0)
+			PowerNetworkManager = Cast<APowerNetworkManager>(Found[0]);
+	}
+
+	// register self with manager if available
+	if (PowerNetworkManager)
+		PowerNetworkManager->RegisterBuilding(this);
+
 	StartPulsing();
+
 	
 }
 
 
 void ABaseHQ::StartPulsing()
 {
-	GetWorldTimerManager().SetTimer(PulseTimerHandle, this , &ABaseHQ::Pulse, PulseInterval, true, 0.5f);
+	if (!GetWorld()) return;
+	GetWorldTimerManager().SetTimer(PulseTimerHandle, this, &ABaseHQ::Pulse, PulseInterval, true, 0.5f);
 }
 
-void ABaseHQ::EndPulsing()
+void ABaseHQ::StopPulsing()
 {
 	GetWorldTimerManager().ClearTimer(PulseTimerHandle);
 }
 
 void ABaseHQ::Pulse()
 {
+	if (PowerNetworkManager)
+	{
+		PowerNetworkManager->PulsePower(this, PowerPerPulse);
+		// UI feedback
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow,
+			FString::Printf(TEXT("HQ pulse %.1f"), PowerPerPulse));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BaseHQ: no PowerNetworkManager assigned"));
+	}
 }
 
 void ABaseHQ::ReceiveDamage(float amount)
 {
 	CurrentHealth -= amount;
-
-	if (CurrentHealth <= 0.0f)
+	if (CurrentHealth <= 0.f)
 	{
-		CurrentHealth = 0.0f;
-
-		EndPulsing();
-
-		UE_LOG(LogTemp, Display, TEXT("HQ destroyed! Game Over"));
+		CurrentHealth = 0.f;
+		StopPulsing();
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("HQ destroyed - Game Over"));
+		// TODO: notify GameMode
 	}
 }
 

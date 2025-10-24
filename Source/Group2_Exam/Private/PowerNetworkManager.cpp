@@ -1,75 +1,63 @@
 #include "PowerNetworkManager.h"
-
-#include "TimerManager.h"
-#include "Kismet/GameplayStatics.h"
-#include "DrawDebugHelpers.h"
 #include "Building.h"
 #include "BaseHQ.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
+#include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/Engine.h"
 
 
-// Sets default values
 APowerNetworkManager::APowerNetworkManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+	TravelDelayPerEdge = 0.25f;
 
 }
 
-// Called when the game starts or when spawned
+
 void APowerNetworkManager::BeginPlay()
 {
 	Super::BeginPlay();
-
 	BuildAdjacencyFromManualConnections();
-	
-	// Register HQ if assigned
-	if (HQReference)
-	{
-		RegisterBuilding(HQReference);
-	}
 
-	// Set timer to repeatedly pulse power
-	if (PulseInterval > 0.f)
-	{
-		GetWorldTimerManager().SetTimer(
-			PulseTimerHandle,
-			this,
-			&APowerNetworkManager::PulsePower,
-			PulseInterval,
-			true
-		);
-	}
+	// Auto-register all buildings in level optionally
+	TArray<AActor*> Found;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABuilding::StaticClass(), Found);
+	for (AActor* A : Found) RegisterBuilding(Cast<ABuilding>(A));
+
 }
 
-void APowerNetworkManager::Tick(float DeltaTime)
+void APowerNetworkManager::BuildAdjacencyFromManualConnections()
 {
-	Super::Tick(DeltaTime);
+	AdjacencyList.Empty();
+
+	for (const FBuildingConnection& C : ManualConnections)
+	{
+		if (!C.A || !C.B) continue;
+		AdjacencyList.FindOrAdd(C.A).AddUnique(C.B);
+		AdjacencyList.FindOrAdd(C.B).AddUnique(C.A);
+	}
 }
 
 void APowerNetworkManager::RegisterBuilding(ABuilding* Building)
 {
-	if (!Building)
-		return;
-
+	if (!Building) return;
 	RegisteredBuildings.AddUnique(Building);
+	AdjacencyList.FindOrAdd(Building); // ensure key exists
 }
 
 void APowerNetworkManager::UnregisterBuilding(ABuilding* Building)
 {
+	if (!Building) return;
 	RegisteredBuildings.Remove(Building);
-
-	for (auto& Pair : AdjacencyList)
-	{
-		Pair.Value.Remove(Building);
-	}
-
 	AdjacencyList.Remove(Building);
+	for (auto& Pair : AdjacencyList) Pair.Value.Remove(Building);
 }
 
 void APowerNetworkManager::AddConnection(ABuilding* A, ABuilding* B)
 {
-	if (!A || !B || A == B) return;
-
+	if (!A || !B || A==B) return;
 	AdjacencyList.FindOrAdd(A).AddUnique(B);
 	AdjacencyList.FindOrAdd(B).AddUnique(A);
 }
@@ -77,73 +65,97 @@ void APowerNetworkManager::AddConnection(ABuilding* A, ABuilding* B)
 void APowerNetworkManager::RemoveConnection(ABuilding* A, ABuilding* B)
 {
 	if (!A || !B) return;
-
-	if (AdjacencyList.Contains(A))
-		AdjacencyList[A].Remove(B);
-	if (AdjacencyList.Contains(B))
-		AdjacencyList[B].Remove(A);
+	if (AdjacencyList.Contains(A)) AdjacencyList[A].Remove(B);
+	if (AdjacencyList.Contains(B)) AdjacencyList[B].Remove(A);
 }
 
-void APowerNetworkManager::PulsePower()
+void APowerNetworkManager::PulsePower(ABuilding* Start, float InitialAmount)
 {
-	if (!HQReference)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No HQReference assigned to PowerNetworkManager!"));
-		return;
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("Pulsing power from HQ..."));
-	PropagatePower(HQReference, PowerPerPulse);
+	if (!Start) return;
+	// Kick off propagation with delays for visualization
+	StartPropagationWithDelays(Start, InitialAmount);
 }
 
-void APowerNetworkManager::BuildAdjacencyFromManualConnections()
+void APowerNetworkManager::StartPropagationWithDelays(ABuilding* Start, float InitialAmount)
 {
-	AdjacencyList.Empty();
+	// BFS iteration capturing distance (edges) then schedule deliveries
+	TQueue<TPair<ABuilding*, int32>> Queue;
+	TSet<ABuilding*> Visited;
 
-	for (const FBuildingConnection& Conn : ManualConnections)
+	Queue.Enqueue({Start, 0});
+	Visited.Add(Start);
+
+	// map to track amount per node (simple split model)
+	TMap<ABuilding*, float> Pending;
+	Pending.Add(Start, InitialAmount);
+
+	while (!Queue.IsEmpty())
 	{
-		if (!Conn.BuildingA || !Conn.BuildingB) continue;
+		TPair<ABuilding*, int32> Pair;
+		Queue.Dequeue(Pair);
+		ABuilding* Node = Pair.Key;
+		int32 Depth = Pair.Value;
 
-		AdjacencyList.FindOrAdd(Conn.BuildingA).AddUnique(Conn.BuildingB);
-		AdjacencyList.FindOrAdd(Conn.BuildingB).AddUnique(Conn.BuildingA);
-	}
-}
+		float ThisAmount = Pending.Contains(Node) ? Pending[Node] : 0.f;
+		// Schedule this node's receive after Depth * TravelDelayPerEdge
+		ScheduleDeliver(Node, ThisAmount, Depth * TravelDelayPerEdge);
 
-void APowerNetworkManager::PropagatePower(ABuilding* From, float RemainingPower)
-{
-	if (!From || RemainingPower <= 0.f)
-		return;
+		// compute forwarding amount (example: keep 50% at node)
+		float Forward = ThisAmount * 0.5f;
 
-	// Example: Apply power to building (implement a method on ABuilding like ReceivePower)
-	From->ReceivePower(RemainingPower);
+		if (!AdjacencyList.Contains(Node) || Forward <= 0.f) continue;
+		TArray<ABuilding*>& Neighbors = AdjacencyList[Node];
+		if (Neighbors.Num() == 0) continue;
+		float Each = Forward / Neighbors.Num();
 
-	// Visualize pulse
-	if (GEngine)
-	{
-		DrawDebugSphere(GetWorld(), From->GetActorLocation(), 60.f, 8, FColor::Cyan, false, 1.0f);
-	}
-
-	// Decrease remaining power as it travels
-	float NextPower = RemainingPower * 0.8f; // 20% loss per hop
-
-	// Propagate to connected buildings
-	if (AdjacencyList.Contains(From))
-	{
-		for (ABuilding* Neighbor : AdjacencyList[From])
+		for (ABuilding* N : Neighbors)
 		{
-			if (Neighbor && Neighbor != From)
+			if (!N) continue;
+			Pending.FindOrAdd(N) += Each;
+			if (!Visited.Contains(N))
 			{
-				DrawDebugLine(GetWorld(),
-					From->GetActorLocation(),
-					Neighbor->GetActorLocation(),
-					FColor::Green, false, 0.5f, 0, 2.f);
-
-				PropagatePower(Neighbor, NextPower);
+				Visited.Add(N);
+				Queue.Enqueue({N, Depth + 1});
 			}
 		}
 	}
 }
 
+void APowerNetworkManager::ScheduleDeliver(ABuilding* Target, float Amount, float Delay)
+{
+	if (!Target || Amount <= 0.f) return;
+	FTimerDelegate D = FTimerDelegate::CreateUObject(this, &APowerNetworkManager::DeliverPower, Target, Amount);
+	GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateLambda([this, D, Delay]()
+	{
+		// schedule with Delay
+		FTimerHandle H;
+		GetWorldTimerManager().SetTimer(H, D, Delay, false);
+	}));
+	// Draw a small debug marker at schedule time
+	DrawDebugSphere(GetWorld(), Target->GetActorLocation(), 40.f, 6, FColor::Blue, false, Delay + 1.0f);
+}
 
+void APowerNetworkManager::DeliverPower(ABuilding* Target, float Amount)
+{
+	if (!Target) return;
+	Target->ReceivePower(Amount);
+
+	// debug draw
+	DrawDebugSphere(GetWorld(), Target->GetActorLocation(), 60.f, 8, FColor::Green, false, 1.0f, 0, 3.f);
+}
+
+void APowerNetworkManager::DrawNetworkDebug(float Duration)
+{
+	for (const auto& Pair : AdjacencyList)
+	{
+		ABuilding* A = Pair.Key;
+		if (!A) continue;
+		for (ABuilding* B : Pair.Value)
+		{
+			if (!B) continue;
+			DrawDebugLine(GetWorld(), A->GetActorLocation(), B->GetActorLocation(), FColor::Cyan, false, Duration, 0, 3.f);
+		}
+	}
+}
 
 

@@ -21,6 +21,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Intermediate/Build/Win64/x64/UnrealEditor/Development/Group2_Exam/Module.Group2_Exam.gen.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Group2_Exam/Private/PowerNetworkManager.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Group2_Exam/Public/PowerNetworkManager.h" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -143,6 +144,8 @@
       <workItem from="1761121996331" duration="5915000" />
       <workItem from="1761128178304" duration="127000" />
       <workItem from="1761128556589" duration="1927000" />
+      <workItem from="1761292960422" duration="570000" />
+      <workItem from="1761294457247" duration="6597000" />
     </task>
     <servers />
   </component>

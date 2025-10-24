@@ -1,9 +1,9 @@
 
-
+/*
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/PlayerController.h"
+#include "GameFramework/Actor.h"
 #include "PlacementController.generated.h"
 
 class ABuilding;
@@ -12,61 +12,46 @@ class UUserWidget;
 
 
 UCLASS()
-class GROUP2_EXAM_API APlacementController : public APlayerController
+class GROUP2_EXAM_API APlacementController : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	APlacementController();
 
-	virtual void BeginPlay() override;
-	virtual void SetupInputComponent() override;
-	virtual void Tick(float DeltaSeconds) override;
-
-	// Building types (set in editor)
-	UPROPERTY(EditAnywhere, Category="Buildings")
-	TSubclassOf<ABuilding> BuildingClass;
-	
-	// Preview class (usually a small actor with same mesh)
-	UPROPERTY(EditAnywhere, Category="Buildings")
-	TSubclassOf<ABuildingPreview> PreviewClass;
-	
-	// HUD widget class
-	UPROPERTY(EditAnywhere, Category="UI")
-	TSubclassOf<UUserWidget> HUDWidgetClass;
-
-	// Grid size for snapping
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Placement")
-	float GridSize = 200.f;
-
-	// Resources
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Resources")
-	int32 Resources = 200;
-
 protected:
+	virtual void BeginPlay() override;
+
+public:
+	// Preview actor class (ghost)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Placement")
+	TSubclassOf<ABuildingPreview> PreviewClass;
+
+	// Building options
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Placement")
+	TSubclassOf<ABuilding> CannonClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Placement")
+	TSubclassOf<ABuilding> MineClass;
+
 	// Current preview instance
-	UPROPERTY()
-	ABuildingPreview* CurrentPreview;
+	UPROPERTY(Transient)
+	ABuildingPreview* CurrentPreview = nullptr;
 
+	// Reference to GameMode for funds
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Placement")
+	ARealGameMode* GameModeRef = nullptr;
 
-	// Which building is selected (for this example we only have one)
-	bool bPlacing = false;
+	// Begin placing one of the building types
+	UFUNCTION(BlueprintCallable)
+	void StartPlacing(TSubclassOf<ABuilding> BuildClass);
 
-	// Input handlers
-	void OnLeftClick();
-	void OnRightClick();
-	void OnRotate();
+	// Confirm placement at given world location and rotation
+	UFUNCTION(BlueprintCallable)
+	bool ConfirmPlacement(const FVector& WorldLocation, const FRotator& WorldRotation);
 
-	// Helpers
-	bool UpdatePreviewLocation();
-	FVector SnapLocationToGrid(const FVector& Location) const;
-	bool CanPlaceAtLocation(const FVector& Location, FHitResult& OutHit);
-
-	// The rotation for placement
-	FRotator CurrentRotation = FRotator::ZeroRotator;
-
-	// UI instance
-	UPROPERTY()
-	UUserWidget* HUDWidget;
-	
+	// Cancel placement
+	UFUNCTION(BlueprintCallable)
+	void CancelPlacement();
 };
+*/

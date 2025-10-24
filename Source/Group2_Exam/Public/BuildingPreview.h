@@ -1,4 +1,4 @@
-
+/*
 
 #pragma once
 
@@ -14,16 +14,14 @@ class GROUP2_EXAM_API ABuildingPreview : public AActor
 public:
 	ABuildingPreview();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent* MeshComp;
-
-	// Material instance used to alter color/transparency
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UMaterialInstanceDynamic* DynamicMat;
-
-	// Call to set valid/invalid color
-	void SetIsValidPlacement(bool bValid);
-
 protected:
 	virtual void BeginPlay() override;
+public:
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* Mesh;
+
+	// Set preview validity (green/red) in Blueprint or code
+	UFUNCTION(BlueprintCallable)
+	void SetValidPlacement(bool bValid);
 };
+*/

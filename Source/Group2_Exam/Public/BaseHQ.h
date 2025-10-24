@@ -3,9 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
 #include "Building.h"
 #include "BaseHQ.generated.h"
+
+class APowerNetworkManager;
 
 UCLASS()
 class GROUP2_EXAM_API ABaseHQ : public ABuilding
@@ -13,10 +14,8 @@ class GROUP2_EXAM_API ABaseHQ : public ABuilding
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ABaseHQ();
 	
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	// Health
@@ -34,27 +33,30 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power")
 	float PulseInterval;
 
-	// Range
+	// Range used for auto-connecting nearby buildings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power")
 	float ConnectionRange;
 
 
-	// Functions
-	
-	UFUNCTION ()
-	void ReceiveDamage(float amount);
+	// Link to manager in the level
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Power")
+	APowerNetworkManager* PowerNetworkManager = nullptr;
 
+	
+	// Start/stop pulsing
 	UFUNCTION()
 	void StartPulsing();
 
 	UFUNCTION()
-	void EndPulsing();
+	void StopPulsing();
 
 	UFUNCTION()
 	void Pulse();
 
+	// Damage the HQ
+	UFUNCTION()
+	void ReceiveDamage(float Amount);
 
-	
 protected:
 	FTimerHandle PulseTimerHandle;
 
