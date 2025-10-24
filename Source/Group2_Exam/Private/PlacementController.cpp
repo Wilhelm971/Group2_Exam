@@ -16,7 +16,7 @@ APlacementController::APlacementController()
 void APlacementController::BeginPlay()
 {
 	Super::BeginPlay();
-
+		
 	if (HUDWidgetClass)
 	{
 		HUDWidget = CreateWidget<UUserWidget>(this, HUDWidgetClass);

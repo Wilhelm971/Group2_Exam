@@ -4,8 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "InputActionValue".h"
 #include "PlacementController.generated.h"
 
+
+class UInputAction;
+class UInputMappingContext;
 class ABuilding;
 class ABuildingPreview;
 class UUserWidget;
@@ -22,6 +26,19 @@ public:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	virtual void Tick(float DeltaSeconds) override;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputMappingContext* BuildingInputMapping;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* IA_LeftClick;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* IA_RightClick;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* IA_Rotate;
 
 	// Building types (set in editor)
 	UPROPERTY(EditAnywhere, Category="Buildings")

@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,7 +5,7 @@
 #include "RealGameMode.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class GROUP2_EXAM_API ARealGameMode : public AGameModeBase
@@ -16,6 +14,4 @@ class GROUP2_EXAM_API ARealGameMode : public AGameModeBase
 
 public:
 	ARealGameMode();
-
-	
 };
