@@ -35,9 +35,10 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;C/C++ Project.Group2_Exam.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;&lt;unknown&gt;&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Marcus__Branch&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -180,6 +181,8 @@
       <workItem from="1761121996331" duration="5915000" />
       <workItem from="1761128178304" duration="127000" />
       <workItem from="1761128556589" duration="1927000" />
+      <workItem from="1762699113269" duration="1062000" />
+      <workItem from="1762700347800" duration="119000" />
     </task>
     <servers />
   </component>

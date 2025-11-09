@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GridManager.h"
 #include "EnemyCharacter.generated.h"
+
+class AGridManager;
 
 UCLASS()
 class GROUP2_EXAM_API AEnemyCharacter : public ACharacter
@@ -14,6 +17,10 @@ class GROUP2_EXAM_API AEnemyCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AEnemyCharacter();
+
+	UPROPERTY(VisibleAnywhere)
+	AGridManager* GridManager;
+	
 
 protected:
 	// Called when the game starts or when spawned

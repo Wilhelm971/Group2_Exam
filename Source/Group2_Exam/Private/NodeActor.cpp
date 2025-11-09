@@ -2,26 +2,90 @@
 
 
 #include "NodeActor.h"
+#include "Components/TextRenderComponent.h"
 
-// Sets default values
-ANodeActor::ANodeActor()
+
+ANodeActor::ANodeActor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
-}
+	TileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TileMesh"));
+	SetRootComponent(TileMesh);
 
-// Called when the game starts or when spawned
-void ANodeActor::BeginPlay()
-{
-	Super::BeginPlay();
+	TileMesh->SetMobility(EComponentMobility::Static);
+	TileMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	TileMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	TileMesh->SetCollisionResponseToChannel(ECC_Visibility, ECollisionResponse::ECR_Block);
+	TileMesh->bHiddenInGame = false;
 	
 }
 
-// Called every frame
-void ANodeActor::Tick(float DeltaTime)
+void ANodeActor::OnConstruction(const FTransform& Transform)
 {
-	Super::Tick(DeltaTime);
+	Super::OnConstruction(Transform);
 
+	if (!DynamicMaterial)
+	{
+		DynamicMaterial = UMaterialInstanceDynamic::Create(TileMesh->GetMaterial(0), this);
+		TileMesh->SetMaterial(0, DynamicMaterial);
+	}
+
+	SetState(bIsWalkable ? ENodeState::Default : ENodeState::Blocked);
+	CalculateFCost();
 }
 
+void ANodeActor::CalculateFCost()
+{
+	FCost = GCost + HCost;
+
+	const FString Text = FString::Printf(TEXT("F:%.1f\nT:%.1f"), FCost, TileCost);
+}
+
+void ANodeActor::ApplyColor(const FLinearColor& Color)
+{
+	if (DynamicMaterial)
+	{
+		DynamicMaterial->SetVectorParameterValue(TEXT("Color"), Color);
+	}
+}
+
+void ANodeActor::SetState(ENodeState NewState)
+{
+	CurrentState = NewState;
+
+	switch (NewState)
+	{
+	case ENodeState::Default:
+		ApplyColor(FLinearColor::White);
+		break;
+	case ENodeState::Blocked:
+		ApplyColor(FLinearColor::Red);
+		break;
+	case ENodeState::Open:
+		ApplyColor(FLinearColor::Yellow);
+		break;
+	case ENodeState::Closed:
+		ApplyColor(FLinearColor::Blue);
+		break;
+	case ENodeState::Path:
+		ApplyColor(FLinearColor::Green);
+		break;
+	case ENodeState::Start:
+		ApplyColor(FLinearColor(0, 255, 255, 255));
+		break;
+	case ENodeState::Target:
+		ApplyColor(FLinearColor(195, 115, 0, 255));
+		break;
+	default:
+		break;
+	}
+}
+
+void ANodeActor::NotifyActorOnClicked(FKey ButtonPressed)
+{
+	Super::NotifyActorOnClicked(ButtonPressed);
+
+	bIsWalkable = !bIsWalkable;
+	SetState(bIsWalkable ? ENodeState::Default : ENodeState::Blocked);
+}
+	

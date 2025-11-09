@@ -15,7 +15,7 @@ AEnemyCharacter::AEnemyCharacter()
 void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	GridManager->StartPathfinding();
 }
 
 // Called every frame

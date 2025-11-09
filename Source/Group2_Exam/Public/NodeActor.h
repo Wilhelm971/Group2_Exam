@@ -6,21 +6,69 @@
 #include "GameFramework/Actor.h"
 #include "NodeActor.generated.h"
 
-UCLASS()
+
+UENUM(BlueprintType)
+enum class ENodeState : uint8
+{
+	Default,
+	Blocked,
+	Open,
+	Closed,
+	Path,
+	Start,
+	Target
+};
+
+UCLASS(BlueprintType)
 class GROUP2_EXAM_API ANodeActor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ANodeActor();
+	ANodeActor(const FObjectInitializer& ObjectInitializer);
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	void CalculateFCost();
+
+	void SetState(ENodeState NewState);
+
+	virtual void NotifyActorOnClicked(FKey ButtonPressed) override;
+
+	void ApplyColor(const FLinearColor& Color);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Node")
+	int32 X = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Node")
+	int32 Y = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Node")
+	bool bIsWalkable = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Node")
+	float TileCost = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Node")
+	float GCost = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Node")
+	float HCost = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Node")
+	float FCost = 0.f;
+
+	UPROPERTY()
+	ANodeActor* Parent = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Components")
+	UStaticMeshComponent* TileMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="A* Node")
+	ENodeState CurrentState = ENodeState::Default;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* DynamicMaterial;
 
 };
