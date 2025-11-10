@@ -1,10 +1,9 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "W_HUD.generated.h"
+
 
 
 UCLASS()
