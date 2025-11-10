@@ -50,15 +50,15 @@ private:
 
 
 
-	
+public:
 	// --- INPUT SYSTEM ---
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category="Enhanced Input")
 	UInputMappingContext* InputMapping;
 
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category="Enhanced Input")
 	UInputAction* MoveAction;
 
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category="Enhanced Input")
 	UInputAction* ZoomAction;
 
 	// --- INPUT HANDLERS ---
