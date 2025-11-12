@@ -19,5 +19,5 @@ public:
 
 public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
-	void UpdateTowerInfo(int32 TowerCost, FString TowerName);
+	void UpdateTowerInfo(int32 TowerCost, const FString& TowerName);
 };
