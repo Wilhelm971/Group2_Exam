@@ -33,7 +33,7 @@ void AEnemySpawner::SpawnEnemy()
 	SpawnLoc += FVector(
 		FMath::RandRange(-300.0f, 300.0f),
 		FMath::RandRange(-300.0f, 300.0f),
-		50.0f  // Slight height offset
+		500.0f  // Slight height offset
 	);
 
 	FActorSpawnParameters Params;

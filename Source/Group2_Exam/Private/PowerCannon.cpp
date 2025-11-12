@@ -8,11 +8,98 @@
 APowerCannon::APowerCannon()
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	// Create Mesh Component
+	CannonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CannonMesh"));
+	RootComponent = CannonMesh;
+	CannonMesh->SetMobility(EComponentMobility::Movable);
+	CannonMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	CannonMesh->SetCollisionObjectType(ECC_WorldDynamic);
+	CannonMesh->SetCollisionResponseToAllChannels(ECR_Block);
+	CannonMesh->SetGenerateOverlapEvents(true);
+
+	// DEFAULT CYLINDER MESH (for testing - override in Blueprint/Editor)
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+	if (MeshAsset.Succeeded())
+	{
+		CannonStaticMeshAsset = MeshAsset.Object;
+	}
+	
 }
 
+void APowerCannon::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (CannonMesh && CannonStaticMeshAsset)
+	{
+		CannonMesh->SetStaticMesh(CannonStaticMeshAsset);
+	}
+}
 void APowerCannon::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+
+void APowerCannon::SetPreviewMode(bool bPreview)
+{
+	bIsPreviewMode = bPreview;
+
+	if (bPreview)
+	{
+		CannonMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CannonMesh->SetVisibility(true);
+		// Start with valid preview material
+		if (PreviewValidMaterial)
+		{
+			CannonMesh->SetMaterial(0, PreviewValidMaterial);
+		}
+	}
+	else
+	{
+		CannonMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		if (NormalMaterial)
+		{
+			CannonMesh->SetMaterial(0, NormalMaterial);
+		}
+	}
+
+	CheckPlacementValidity();
+}
+
+void APowerCannon::CheckPlacementValidity()
+{
+	bPlacementValid = true;
+
+	// Check distance to other PowerNodes
+	TArray<AActor*> AllNodes;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerNode::StaticClass(), AllNodes);
+
+	for (AActor* NodeActor : AllNodes)
+	{
+		if (NodeActor == this || !IsValid(NodeActor)) continue;
+
+		float Dist = FVector::Dist(GetActorLocation(), NodeActor->GetActorLocation());
+		if (Dist < MinPlacementDistance)
+		{
+			bPlacementValid = false;
+			break;
+		}
+	}
+
+	UpdatePreviewVisuals();
+}
+
+void APowerCannon::UpdatePreviewVisuals()
+{
+	if (!bIsPreviewMode) return;
+
+	UMaterialInterface* MatToUse = bPlacementValid ? PreviewValidMaterial : PreviewInvalidMaterial;
+	if (MatToUse)
+	{
+		CannonMesh->SetMaterial(0, MatToUse);
+	}
 }
 
 void APowerCannon::ReceivePower(APowerNode* FromNode)
@@ -68,6 +155,8 @@ void APowerCannon::TryShoot()
 	}
 	
 }
+
+
 
 void APowerCannon::FireAtEnemy(AActor* Target)
 {
