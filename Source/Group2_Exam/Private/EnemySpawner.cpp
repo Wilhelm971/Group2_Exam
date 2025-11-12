@@ -29,10 +29,21 @@ void AEnemySpawner::SpawnEnemy()
 
 	if (!EnemyClass) return;
 
+	FVector SpawnLoc = GetActorLocation();
+	SpawnLoc += FVector(
+		FMath::RandRange(-300.0f, 300.0f),
+		FMath::RandRange(-300.0f, 300.0f),
+		50.0f  // Slight height offset
+	);
+
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	GetWorld()->SpawnActor<AEnemyCharacter>(EnemyClass, GetActorLocation(), GetActorRotation(), Params);
+	AEnemyCharacter* NewEnemy = GetWorld()->SpawnActor<AEnemyCharacter>(EnemyClass, SpawnLoc, GetActorRotation(), Params);
+	if (NewEnemy)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Spawned enemy: %s"), *NewEnemy->GetName());
+	}
 }
 
 

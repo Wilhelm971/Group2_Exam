@@ -32,6 +32,8 @@ public:
 
 	void TakeDamageFromCannon(float DamageAmount);
 
+	void  FindTargetBase();
+
 private:
 	UPROPERTY(EditAnywhere, Category = "Enemy")
 	float MoveSpeed = 200.f;
@@ -47,3 +49,5 @@ private:
 	UPROPERTY()
 	APowerCore* TargetBase;
 };
+
+

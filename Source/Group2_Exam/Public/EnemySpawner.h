@@ -27,7 +27,7 @@ protected:
 	TSubclassOf<AEnemyCharacter> EnemyClass;
 
 	UPROPERTY(EditAnywhere, Category = "Spawner")
-	float SpawnTime = 5.0f;
+	float SpawnTime = 2.0f;
 
 
 private:

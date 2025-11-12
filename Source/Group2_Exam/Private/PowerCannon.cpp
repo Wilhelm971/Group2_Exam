@@ -17,7 +17,6 @@ void APowerCannon::BeginPlay()
 
 void APowerCannon::ReceivePower(APowerNode* FromNode)
 {
-	Super::ReceivePower(FromNode);
 	// Call parent to mark as powered
 	Super::ReceivePower(FromNode);
 
@@ -41,7 +40,7 @@ void APowerCannon::LosePower()
 
 void APowerCannon::TryShoot()
 {
-/*
+
 	if (!bIsPowered) return;
 
 	// Find nearest enemy within AttackRange
@@ -67,20 +66,23 @@ void APowerCannon::TryShoot()
 	{
 		FireAtEnemy(ClosestEnemy);
 	}
-	*/
+	
 }
 
 void APowerCannon::FireAtEnemy(AActor* Target)
 {
-	/*
+	
 	if (!Target) return;
 
 	// You could spawn a projectile or apply damage directly
-	Target->TakeDamageFromCannon(Damage);
+	if (AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Target))
+	{
+		Enemy->TakeDamageFromCannon(Damage);
+	}
 
 	DrawDebugLine(GetWorld(), GetActorLocation(), Target->GetActorLocation(),
 		FColor::Red, false, 0.2f, 0, 2.0f);
 
 	UE_LOG(LogTemp, Log, TEXT("%s fired at %s"), *GetName(), *Target->GetName());
-	*/
+	
 }
