@@ -6,6 +6,10 @@
 #include "GameFramework/Character.h"
 #include "EnemyCharacter.generated.h"
 
+
+class APowerCore;
+
+
 UCLASS()
 class GROUP2_EXAM_API AEnemyCharacter : public ACharacter
 {
@@ -26,4 +30,24 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void TakeDamageFromCannon(float DamageAmount);
+
+	void  FindTargetBase();
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Enemy")
+	float MoveSpeed = 200.f;
+
+	UPROPERTY(EditAnywhere, Category = "Enemy")
+	float MaxHealth = 100.f;
+
+	
+	UPROPERTY(EditAnywhere, Category = "Enemy")
+	float CurrentHealth = 100.f;
+
+
+	UPROPERTY()
+	APowerCore* TargetBase;
 };
+
+

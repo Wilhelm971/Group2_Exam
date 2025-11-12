@@ -37,7 +37,7 @@ public:
 
 	// Projectile or damage settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cannon")
-	float Damage = 25.0f;
+	float Damage = 1.0f;
 
 private:
 	FTimerHandle TimerHandle_Fire;
