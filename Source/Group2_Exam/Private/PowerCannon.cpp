@@ -41,6 +41,7 @@ void APowerCannon::LosePower()
 
 void APowerCannon::TryShoot()
 {
+/*
 	if (!bIsPowered) return;
 
 	// Find nearest enemy within AttackRange
@@ -66,17 +67,20 @@ void APowerCannon::TryShoot()
 	{
 		FireAtEnemy(ClosestEnemy);
 	}
+	*/
 }
 
 void APowerCannon::FireAtEnemy(AActor* Target)
 {
+	/*
 	if (!Target) return;
 
 	// You could spawn a projectile or apply damage directly
-	UGameplayStatics::ApplyDamage(Target, Damage, GetInstigatorController(), this, nullptr);
+	Target->TakeDamageFromCannon(Damage);
 
 	DrawDebugLine(GetWorld(), GetActorLocation(), Target->GetActorLocation(),
 		FColor::Red, false, 0.2f, 0, 2.0f);
 
 	UE_LOG(LogTemp, Log, TEXT("%s fired at %s"), *GetName(), *Target->GetName());
+	*/
 }
