@@ -90,5 +90,5 @@ void APowerCannon::FireAtEnemy(AActor* Target)
 APowerCannon::APowerCannon()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	PowerCannonCost = 100; // Default cost
+	PowerCannonCost = 50; // Default cost
 };

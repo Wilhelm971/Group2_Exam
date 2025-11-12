@@ -23,7 +23,7 @@ protected:
     // Add this property to your APowerCannon class definition
     public:
         UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
-        int32 PowerCannonCost = 100;
+        int32 PowerCannonCost = 50;
 
 public:
 	// Called when this cannon is powered and ready to shoot
