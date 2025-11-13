@@ -32,3 +32,8 @@ void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
+void AEnemyCharacter::TakeDamageFromCannon(float Damage)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Damage from cannon"));
+}
+

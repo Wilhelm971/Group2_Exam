@@ -17,6 +17,9 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -33,20 +36,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;C/C++ Project.Group2_Exam.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Marcus__Branch&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "C/C++ Project.Group2_Exam.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "<unknown>",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="C/C++ Project.Group2_Exam">
     <configuration name="Group2_Exam" type="CppProject" factoryName="C++ Project">
       <configuration_1 setup="1">
@@ -82,13 +85,8 @@
       <option name="WORKING_DIRECTORY" value="" />
       <option name="PASS_PARENT_ENVS" value="1" />
       <option name="USE_EXTERNAL_CONSOLE" value="0" />
-      <option name="ENV_FILE_PATHS" value="" />
-      <option name="REDIRECT_INPUT_PATH" value="" />
-      <option name="PTY_MODE" value="Auto" />
-      <option name="MIXED_MODE_DEBUG" value="0" />
       <option name="USE_MONO" value="0" />
       <option name="RUNTIME_ARGUMENTS" value="" />
-      <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <option name="PROJECT_PATH" value="$PROJECT_DIR$/../../Program Files/Epic Games/UE_5.6/Engine/Source/Programs/AutomationTool/AutomationTool.csproj" />
       <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
       <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
@@ -105,13 +103,8 @@
       <option name="WORKING_DIRECTORY" value="" />
       <option name="PASS_PARENT_ENVS" value="1" />
       <option name="USE_EXTERNAL_CONSOLE" value="0" />
-      <option name="ENV_FILE_PATHS" value="" />
-      <option name="REDIRECT_INPUT_PATH" value="" />
-      <option name="PTY_MODE" value="Auto" />
-      <option name="MIXED_MODE_DEBUG" value="0" />
       <option name="USE_MONO" value="0" />
       <option name="RUNTIME_ARGUMENTS" value="" />
-      <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <option name="PROJECT_PATH" value="$PROJECT_DIR$/../../Program Files/Epic Games/UE_5.6/Engine/Source/Programs/UnrealBuildTool/UnrealBuildTool.csproj" />
       <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
       <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
@@ -133,7 +126,6 @@
       <option name="SHOW_IIS_EXPRESS_OUTPUT" value="0" />
       <option name="SEND_DEBUG_REQUEST" value="1" />
       <option name="ADDITIONAL_IIS_EXPRESS_ARGUMENTS" value="" />
-      <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <method v="2">
         <option name="Build" />
       </method>
@@ -183,6 +175,7 @@
       <workItem from="1761128556589" duration="1927000" />
       <workItem from="1762699113269" duration="1062000" />
       <workItem from="1762700347800" duration="119000" />
+      <workItem from="1763030331176" duration="613000" />
     </task>
     <servers />
   </component>
