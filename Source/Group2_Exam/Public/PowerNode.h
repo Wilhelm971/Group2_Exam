@@ -19,7 +19,7 @@ protected:
 public:
 	// Power range (how far this node can send power)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Power")
-	float PowerRange = 1000.0f;
+	float PowerRange = 400.0f;
 
 	// Whether this node is currently powered
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Power")
@@ -30,4 +30,14 @@ public:
 
 	// Called when this node loses power
 	virtual void LosePower();
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	float MaxHealth = 100.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
+	float CurrentHealth;
+
+	UFUNCTION(BlueprintCallable, Category = "Damage")
+	virtual void TakeDamageCustom(float DamageAmount);
 };

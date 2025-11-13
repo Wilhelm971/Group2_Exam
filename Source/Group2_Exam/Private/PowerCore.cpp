@@ -5,6 +5,8 @@
 APowerCore::APowerCore()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	MaxHealth = 500.0f;  // Override base value
+	CurrentHealth = MaxHealth;
 }
 
 void APowerCore::BeginPlay()

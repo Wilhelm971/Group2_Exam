@@ -4,6 +4,7 @@
 APowerNode::APowerNode()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	CurrentHealth = MaxHealth;  // ← Initialize health
 }
 
 void APowerNode::BeginPlay()
@@ -47,5 +48,21 @@ void APowerNode::LosePower()
 	{
 		bIsPowered = false;
 		UE_LOG(LogTemp, Log, TEXT("%s lost power"), *GetName());
+	}
+}
+
+void APowerNode::TakeDamageCustom(float DamageAmount)
+{
+	if (DamageAmount <= 0.0f) return;
+
+	CurrentHealth -= DamageAmount;
+
+	UE_LOG(LogTemp, Warning, TEXT("%s hit! %.0f dmg → %.0f/%.0f HP"),
+		   *GetName(), DamageAmount, CurrentHealth, MaxHealth);
+
+	if (CurrentHealth <= 0.0f)
+	{
+		UE_LOG(LogTemp, Log, TEXT("%s DESTROYED!"), *GetName());
+		Destroy();
 	}
 }
