@@ -30,4 +30,14 @@ public:
 
 	// Called when this node loses power
 	virtual void LosePower();
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+	float MaxHealth = 100.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
+	float CurrentHealth;
+
+	UFUNCTION(BlueprintCallable, Category = "Damage")
+	virtual void TakeDamageCustom(float DamageAmount);
 };

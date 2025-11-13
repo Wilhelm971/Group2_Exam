@@ -20,10 +20,7 @@ public:
 	// How often the core emits a power pulse
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Power")
 	float PulseInterval = 5.0f;
-
-	// Core health (enemies will attack this)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Core")
-	float Health = 1000.0f;
+	
 
 	// Called periodically to emit power
 	void EmitPowerPulse();

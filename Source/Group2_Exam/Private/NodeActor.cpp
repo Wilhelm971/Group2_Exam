@@ -11,17 +11,5 @@ ANodeActor::ANodeActor()
 
 }
 
-// Called when the game starts or when spawned
-void ANodeActor::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
 
-// Called every frame
-void ANodeActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
 

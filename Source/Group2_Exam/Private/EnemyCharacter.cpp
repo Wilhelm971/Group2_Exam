@@ -4,9 +4,12 @@
 #include "PowerCore.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "NavigationSystem.h"
 #include "Components/CapsuleComponent.h"
+#include "GridManager.h"                 // <-- NEW
 
+// =============================================================
+// CONSTRUCTOR
+// =============================================================
 AEnemyCharacter::AEnemyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -29,12 +32,32 @@ AEnemyCharacter::AEnemyCharacter()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn,        ECR_Ignore);
 }
 
+// =============================================================
+// BEGIN PLAY
+// =============================================================
 void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Grab the singleton GridManager (must be placed in the level)
+	TArray<AActor*> Found;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGridManager::StaticClass(), Found);
+	if (Found.Num() > 0)
+	{
+		GridMgr = Cast<AGridManager>(Found[0]);
+		UE_LOG(LogTemp, Warning, TEXT("Enemy %s found GridManager"), *GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("!!! NO GRIDMANAGER IN LEVEL !!!"));
+	}
+
 	FindClosestTarget();
 }
 
+// =============================================================
+// TICK
+// =============================================================
 void AEnemyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -51,7 +74,7 @@ void AEnemyCharacter::Tick(float DeltaTime)
 	TimeSincePathRecalc += DeltaTime;
 	if (TargetTower && TimeSincePathRecalc >= PathRecalcInterval)
 	{
-		CalculatePathToTarget();
+		CalculateGridPath();
 		TimeSincePathRecalc = 0.f;
 	}
 
@@ -66,17 +89,16 @@ void AEnemyCharacter::Tick(float DeltaTime)
 		}
 		else
 		{
-			const FVector TargetPos = bUsePathfinding ? GetNextPathPoint()
-			                                          : TargetTower->GetActorLocation();
-			const FVector Dir = (TargetPos - GetActorLocation()).GetSafeNormal();
+			const FVector Next = GetNextPathPoint();
+			const FVector Dir = (Next - GetActorLocation()).GetSafeNormal();
 			GetCharacterMovement()->Velocity = Dir * MoveSpeed;
 		}
 	}
 }
 
-/* --------------------------------------------------------------
-   FIND CLOSEST TOWER (PowerNode = Cannon OR Core)
-   -------------------------------------------------------------- */
+// =============================================================
+// FIND CLOSEST TOWER
+// =============================================================
 void AEnemyCharacter::FindClosestTarget()
 {
 	TargetTower = nullptr;
@@ -108,90 +130,77 @@ void AEnemyCharacter::FindClosestTarget()
 	}
 }
 
-/* --------------------------------------------------------------
-   A* PATHFINDING (synchronous)
-   -------------------------------------------------------------- */
-void AEnemyCharacter::CalculatePathToTarget()
+// =============================================================
+// GRID-BASED A* (uses your GridManager)
+// =============================================================
+void AEnemyCharacter::CalculateGridPath()
 {
-	if (!TargetTower || !bUsePathfinding) return;
+	if (!GridMgr || !TargetTower) return;
 
-	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-	if (!NavSys) return;
+	// Convert world positions → grid indices
+	FVector StartWorld = GetActorLocation();
+	FVector EndWorld   = TargetTower->GetActorLocation();
 
-	FNavPathSharedPtr NavPath;
-	const FVector Goal = TargetTower->GetActorLocation();
+	FIntPoint StartIdx = GridMgr->WorldToGridIndex(StartWorld);
+	FIntPoint EndIdx   = GridMgr->WorldToGridIndex(EndWorld);
 
-	const bool bPathFound = NavSys->FindPathToLocationSynchronously(
-		GetWorld(),
-		GetActorLocation(),
-		Goal,
-		FNavAgentProperties(),
-		EPathFindingMode::Regular,  // ← FIXED: A* works!
-		&NavPath);
+	// Run A* on the grid (exactly like NodeActor does)
+	TArray<FIntPoint> GridPath = GridMgr->FindPath(StartIdx, EndIdx);
 
 	PathPoints.Empty();
+	CurrentPathIndex = 0;
 
-	if (bPathFound && NavPath.IsValid())
+	if (GridPath.Num() > 0)
 	{
-		const TArray<FNavPathPoint>& Points = NavPath->GetPathPoints();
-		for (const FNavPathPoint& P : Points)
+		// Convert grid indices back to world locations (center of cell)
+		for (const FIntPoint& Idx : GridPath)
 		{
-			PathPoints.Add(P.Location);
+			FVector World = GridMgr->GridToWorldCenter(Idx);
+			PathPoints.Add(World);
 		}
-		UE_LOG(LogTemp, Log, TEXT("Path: %d points"), PathPoints.Num());
+
+		UE_LOG(LogTemp, Log, TEXT("A* path: %d points"), PathPoints.Num());
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No path to %s"), *TargetTower->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("No grid path to %s"), *TargetTower->GetName());
 	}
 }
 
-/* --------------------------------------------------------------
-   NEXT WAYPOINT
-   -------------------------------------------------------------- */
+// =============================================================
+// GET NEXT WAYPOINT
+// =============================================================
 FVector AEnemyCharacter::GetNextPathPoint()
 {
-	if (PathPoints.Num() > 0)
+	if (PathPoints.IsValidIndex(CurrentPathIndex))
 	{
-		// remove point when we are close enough
-		const FVector First = PathPoints[0];
-		if (FVector::Dist(GetActorLocation(), First) < 80.f)
+		// If we are close enough to the current point, advance
+		const FVector Cur = PathPoints[CurrentPathIndex];
+		if (FVector::Dist(GetActorLocation(), Cur) < 60.f)
 		{
-			PathPoints.RemoveAt(0);
+			++CurrentPathIndex;
 		}
-		return First;
+		return Cur;
 	}
+
+	// Fallback – go straight to target
 	return TargetTower ? TargetTower->GetActorLocation() : GetActorLocation();
 }
 
-/* --------------------------------------------------------------
-   ATTACK
-   -------------------------------------------------------------- */
+// =============================================================
+// ATTACK
+// =============================================================
 void AEnemyCharacter::AttackTarget()
 {
 	if (!TargetTower || !IsValid(TargetTower)) return;
 
-	const float DPS = 30.f;
-	const float Damage = DPS * GetWorld()->DeltaTimeSeconds;
-
-	if (APowerCannon* Cannon = Cast<APowerCannon>(TargetTower))
-	{
-		Cannon->TakeDamageCustom(Damage);
-	}
-	else if (APowerCore* Core = Cast<APowerCore>(TargetTower))
-	{
-		Core->Health -= Damage;
-		if (Core->Health <= 0.f)
-		{
-			UE_LOG(LogTemp, Error, TEXT("GAME OVER – Core destroyed"));
-			Core->Destroy();
-		}
-	}
+	const float Damage = 30.f * GetWorld()->DeltaTimeSeconds;
+	TargetTower->TakeDamageCustom(Damage);
 }
 
-/* --------------------------------------------------------------
-   DAMAGE
-   -------------------------------------------------------------- */
+// =============================================================
+// DAMAGE (enemy itself)
+// =============================================================
 void AEnemyCharacter::TakeDamageCustom(float DamageAmount)
 {
 	if (DamageAmount <= 0.f) return;
@@ -207,12 +216,4 @@ void AEnemyCharacter::TakeDamageCustom(float DamageAmount)
 void AEnemyCharacter::TakeDamageFromCannon(float Damage)
 {
 	TakeDamageCustom(Damage);
-}
-
-float AEnemyCharacter::TakeDamage(float DamageAmount,
-                                  struct FDamageEvent const& DamageEvent,
-                                  AController* EventInstigator,
-                                  AActor* DamageCauser)
-{
-	return 0.f;   // we ignore the built-in UE damage system
 }

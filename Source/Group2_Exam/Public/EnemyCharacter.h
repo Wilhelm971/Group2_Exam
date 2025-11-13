@@ -1,9 +1,9 @@
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "PowerNode.h"               // TargetTower (Cannon / Core)
+#include "PowerNode.h"
+#include "GridManager.h"          // <-- NEW
 #include "EnemyCharacter.generated.h"
 
 UCLASS()
@@ -20,7 +20,7 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	// ----- Stats -------------------------------------------------
+	// ---------- STATS ----------
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	float MaxHealth = 100.f;
 
@@ -30,46 +30,40 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	float MoveSpeed = 400.f;
 
-	// ----- Damage ------------------------------------------------
+	// ---------- DAMAGE ----------
 	UFUNCTION(BlueprintCallable, Category = "Damage")
 	void TakeDamageCustom(float DamageAmount);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category = "Damage")
 	void TakeDamageFromCannon(float Damage);
 
-	// ----- AI ----------------------------------------------------
+	// ---------- AI ----------
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	class APowerNode* TargetTower;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	float AttackRange = 150.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Pathfinding")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	float PathRecalcInterval = 1.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Pathfinding")
-	bool bUsePathfinding = true;
-
 private:
-	// ----- AI helpers -------------------------------------------
+	// ----- Helpers -----
 	void FindClosestTarget();
-	void CalculatePathToTarget();
+	void CalculateGridPath();               // <-- NEW – uses GridManager A*
 	FVector GetNextPathPoint();
 	void AttackTarget();
 
-	// ----- Timers -----------------------------------------------
+	// ----- Timers -----
 	float TimeSinceLastSearch = 0.f;
 	float TimeSincePathRecalc = 0.f;
 	static constexpr float SearchInterval = 0.5f;
 
-	// ----- Path data (A*) ---------------------------------------
-	TArray<FVector> PathPoints;          // only the world locations we need
-	FVector NextWaypoint;
+	// ----- Path data -----
+	TArray<FVector> PathPoints;   // world-space points from GridManager
+	int32 CurrentPathIndex = 0;
 
-protected:
-	// Ignore UE damage system
-	virtual float TakeDamage(float DamageAmount,
-	                         struct FDamageEvent const& DamageEvent,
-	                         class AController* EventInstigator,
-	                         class AActor* DamageCauser) override;
+	// ----- Grid reference -----
+	UPROPERTY()
+	class AGridManager* GridMgr;
 };
