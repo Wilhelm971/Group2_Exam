@@ -18,6 +18,14 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PowerCannon")
+	int32 TowerCost;
+
+    // Add this property to your APowerCannon class definition
+    public:
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+        int32 PowerCannonCost = 50;
+
 public:
 
 	virtual void PostInitializeComponents() override;
@@ -86,6 +94,8 @@ protected:
 private:
 	FTimerHandle TimerHandle_Fire;
 	void FireAtEnemy(AActor* Target);
+
+
 
 	
 };
