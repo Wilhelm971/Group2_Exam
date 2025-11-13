@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "PowerCore.h"
 #include "EnemyCharacter.generated.h"
 
 
-class APowerCore;
 
 
 UCLASS()
@@ -16,38 +16,44 @@ class GROUP2_EXAM_API AEnemyCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AEnemyCharacter();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
+public:
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	// Health system
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Stats")
+	float MaxHealth = 100.0f;
 
-	void TakeDamageFromCannon(float DamageAmount);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Stats")
+	float CurrentHealth;
 
-	void  FindTargetBase();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Stats")
+	float MoveSpeed = 400.0f;
+
+	UFUNCTION(BlueprintCallable, Category="Damage")
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, 
+							 class AController* EventInstigator, class AActor* DamageCauser) override;
+	
+	UFUNCTION()
+	void TakeDamageFromCannon(float Damage);
+
+	// Target: Main PowerCore
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="AI")
+	APowerCore* TargetBase;
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Enemy")
-	float MoveSpeed = 200.f;
+	// AI: Find closest PowerCore (robust spawn timing)
+	void FindTargetBase();
 
-	UPROPERTY(EditAnywhere, Category = "Enemy")
-	float MaxHealth = 100.f;
-
-	
-	UPROPERTY(EditAnywhere, Category = "Enemy")
-	float CurrentHealth = 100.f;
-
-
+	// Movement retry timer (if no target on spawn)
 	UPROPERTY()
-	APowerCore* TargetBase;
+	float TimeSinceLastSearch = 0.0f;
+
+	static constexpr float SearchInterval = 0.5f;  // Retry every 0.5s
 };
 
 
