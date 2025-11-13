@@ -49,8 +49,7 @@ void UPowerNetworkSubsystem::RebuildConnections()
 			{
 				Neighbors.Add(NodeB);
 
-				DrawDebugLine(GetWorld(), NodeA->GetActorLocation(), NodeB->GetActorLocation(),
-					FColor::Yellow, false, 2.0f, 0, 1.5f);
+				//DrawDebugLine(GetWorld(), NodeA->GetActorLocation(), NodeB->GetActorLocation(), FColor::Yellow, false, 2.0f, 0, 1.5f);
 			}
 		}
 
@@ -85,7 +84,7 @@ void UPowerNetworkSubsystem::PropagatePower(APowerNode* SourceNode)
 
 				//Draws visual power line
 
-				DrawDebugLine(GetWorld(), Current->GetActorLocation(), Neighbor->GetActorLocation(), FColor::Cyan, false, 1.0f, 0, 4.0f);
+				DrawDebugLine(GetWorld(), Current->GetActorLocation(), Neighbor->GetActorLocation(), FColor::Cyan, false, 2.0f, 0, 8.0f);
 			}
 		}
 	}

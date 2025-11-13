@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "InputActionValue.h"
+#include "PowerCannon.h"
 #include "TopDownPlayerController.generated.h"
 
 /**
@@ -28,6 +29,18 @@ public:
 	virtual void SetupInputComponent() override;
 	virtual void Tick(float DeltaSeconds) override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
+	TSubclassOf<APowerCannon> CannonToPlaceClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
+	TEnumAsByte<ECollisionChannel> PlacementTraceChannel = ECC_Visibility;
+
+	UPROPERTY()
+	APowerCannon* PreviewCannon;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
+	bool bBuildingModeActive = false;
+
 private:
 	// --- CAMERA ---
 	UPROPERTY(EditAnywhere, Category="Camera")
@@ -37,7 +50,7 @@ private:
 	float ZoomSpeed = 5000.0f;
 
 	UPROPERTY(EditAnywhere, Category="Camera")
-	float MinZoom = 1500.0f;
+	float MinZoom = 50.0f;
 
 	UPROPERTY(EditAnywhere, Category="Camera")
 	float MaxZoom = 5000.0f;
@@ -61,8 +74,27 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Enhanced Input")
 	UInputAction* ZoomAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
+	UInputAction* BuildAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
+	UInputAction* PlaceAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
+	UInputAction* CancelAction;
+
 	// --- INPUT HANDLERS ---
 	void HandleMove(const FInputActionValue& Value);
 	void HandleZoom(const FInputActionValue& Value);
+
+	void ToggleBuildingMode(const FInputActionValue& Value);
+	void PlaceBuilding(const FInputActionValue& Value);
+	void CancelBuilding(const FInputActionValue& Value);
+
+
+private:
+	void StartBuildingMode();
+	void CancelBuildingMode();
+	void UpdatePreviewPosition();
 	
 };
