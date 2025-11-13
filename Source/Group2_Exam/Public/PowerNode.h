@@ -19,7 +19,7 @@ protected:
 public:
 	// Power range (how far this node can send power)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Power")
-	float PowerRange = 1000.0f;
+	float PowerRange = 400.0f;
 
 	// Whether this node is currently powered
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Power")

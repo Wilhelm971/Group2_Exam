@@ -28,7 +28,7 @@ public:
 	float CurrentHealth;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float MoveSpeed = 400.f;
+	float MoveSpeed = 100.f;
 
 	// ---------- DAMAGE ----------
 	UFUNCTION(BlueprintCallable, Category = "Damage")

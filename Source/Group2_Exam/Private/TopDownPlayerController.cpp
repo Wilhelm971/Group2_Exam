@@ -189,6 +189,10 @@ void ATopDownPlayerController::UpdatePreviewPosition()
 		if (HitResult.bBlockingHit)
 		{
 			FVector PlaceLocation = HitResult.Location;
+
+			// ===== KEY FIX: Offset Z by cannon half-height =====
+			// Adjust for cannon base (pivot) to sit ON surface
+			PlaceLocation.Z += 50.0f;  // ← CHANGE THIS to match your cannon height / 2
 			PreviewCannon->SetActorLocation(PlaceLocation);
 			PreviewCannon->SetActorRotation(FRotator::ZeroRotator);  // Fixed rotation - customize later
 
