@@ -1,15 +1,21 @@
+// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
 
 
 
 #include "NodeActor.h"
 
-// Sets default values
+// =============================================================
+// CLASS DESCRIPTION
+// =============================================================
+// ANodeActor: Represents a single node in the grid system.
+// Used for pathfinding and grid-based navigation.
+
+// =============================================================
+// CONSTRUCTOR
+// =============================================================
+// Sets default values.
 ANodeActor::ANodeActor()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Enable ticking if needed for dynamic updates.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
-
-
-

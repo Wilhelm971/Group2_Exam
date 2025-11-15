@@ -1,3 +1,6 @@
+// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
+
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -5,87 +8,126 @@
 #include "Components/StaticMeshComponent.h"
 #include "PowerCannon.generated.h"
 
+class UStaticMesh;
+class UMaterialInterface;
 
-
+/**
+ * APowerCannon
+ * 
+ * Cannon node that attacks enemies when powered.
+ * Extends APowerNode with firing logic and building preview features.
+ */
 UCLASS()
 class GROUP2_EXAM_API APowerCannon : public APowerNode
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	APowerCannon();
+    // =============================================================
+    // CONSTRUCTOR AND OVERRIDES
+    // =============================================================
+    APowerCannon();
 
 protected:
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
 public:
+    virtual void PostInitializeComponents() override;
 
-	virtual void PostInitializeComponents() override;
-	
-	// Called when this cannon is powered and ready to shoot
-	virtual void ReceivePower(APowerNode* FromNode) override;
+    // =============================================================
+    // POWER OVERRIDES
+    // =============================================================
+    /** Receives power and starts firing timer. */
+    virtual void ReceivePower(APowerNode* FromNode) override;
 
-	// Called when this cannon loses power
-	virtual void LosePower() override;
+    /** Loses power and stops firing. */
+    virtual void LosePower() override;
 
-	// Try to shoot at nearby enemies
-	void TryShoot();
+    // =============================================================
+    // CANNON PROPERTIES
+    // =============================================================
+    /** Interval between shots when powered. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+    float FireInterval = 2.0f;
 
-	// How often the cannon fires (if powered)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cannon")
-	float FireInterval = 2.0f;
+    /** Range for detecting and attacking enemies. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+    float AttackRange = 350.0f;
 
-	// How far the cannon can detect and shoot enemies
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cannon")
-	float AttackRange = 350.0f;
+    /** Damage dealt per shot. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+    float Damage = 10.0f;
 
-	// Projectile or damage settings
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cannon")
-	float Damage = 10.0f;
+    // =============================================================
+    // MESH AND MATERIALS
+    // =============================================================
+    /** Static mesh asset for the cannon. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+    UStaticMesh* CannonStaticMeshAsset;
 
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	UStaticMesh* CannonStaticMeshAsset;
+    /** Material for normal (placed) state. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
+    UMaterialInterface* NormalMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
-	UMaterialInterface* NormalMaterial;
+    /** Material for valid preview placement. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
+    UMaterialInterface* PreviewValidMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
-	UMaterialInterface* PreviewValidMaterial;
+    /** Material for invalid preview placement. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
+    UMaterialInterface* PreviewInvalidMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
-	UMaterialInterface* PreviewInvalidMaterial;
+    // =============================================================
+    // BUILDING PROPERTIES
+    // =============================================================
+    /** Flag for preview mode during placement. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
+    bool bIsPreviewMode = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
-	bool bIsPreviewMode = false;
+    /** Flag indicating if current placement is valid. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
+    bool bPlacementValid = true;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
-	bool bPlacementValid = true;
+    /** Minimum distance to other nodes for valid placement. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building", meta = (ClampMin = "50.0"))
+    float MinPlacementDistance = 300.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building", meta = (ClampMin = "50.0"))
-	float MinPlacementDistance = 300.0f;
+    // =============================================================
+    // BUILDING FUNCTIONS
+    // =============================================================
+    /** Sets the cannon to preview mode. */
+    UFUNCTION(BlueprintCallable, Category = "Building")
+    void SetPreviewMode(bool bPreview);
 
+    /** Checks if current position is valid for placement. */
+    UFUNCTION(BlueprintCallable, Category = "Building")
+    void CheckPlacementValidity();
 
-	// NEW FUNCTIONS 
-	UFUNCTION(BlueprintCallable, Category = "Building")
-	void SetPreviewMode(bool bPreview);
+    /** Updates visuals based on placement validity. */
+    UFUNCTION(BlueprintCallable, Category = "Building")
+    void UpdatePreviewVisuals();
 
-	UFUNCTION(BlueprintCallable, Category = "Building")
-	void CheckPlacementValidity();
-
-	UFUNCTION(BlueprintCallable, Category = "Building")
-	void UpdatePreviewVisuals();
-
-
-	
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* CannonMesh;
-
+    // =============================================================
+    // COMPONENTS
+    // =============================================================
+    /** Mesh component for the cannon. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UStaticMeshComponent* CannonMesh;
 
 private:
-	FTimerHandle TimerHandle_Fire;
-	void FireAtEnemy(AActor* Target);
+    // =============================================================
+    // PRIVATE FUNCTIONS
+    // =============================================================
+    /** Attempts to shoot at the nearest enemy. */
+    void TryShoot();
 
-	
+    /** Fires a shot at the specified target. */
+    void FireAtEnemy(AActor* Target);
+
+    // =============================================================
+    // PRIVATE DATA
+    // =============================================================
+    /** Timer handle for firing interval. */
+    FTimerHandle TimerHandle_Fire;
 };

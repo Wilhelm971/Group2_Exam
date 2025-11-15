@@ -1,36 +1,54 @@
+// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
+
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "PowerNetworkSubsystem.generated.h"
 
+class APowerNode;  // Forward declaration
 
-class APowerNode;
-
-
+/**
+ * UPowerNetworkSubsystem
+ * 
+ * World subsystem for managing the power network graph.
+ * Handles node registration, connections, and power propagation.
+ */
 UCLASS()
 class GROUP2_EXAM_API UPowerNetworkSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
 public:
+	// =============================================================
+	// OVERRIDES
+	// =============================================================
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	// Register or remove nodes from the power network
+	// =============================================================
+	// PUBLIC FUNCTIONS
+	// =============================================================
+	/** Registers a new node in the network. */
 	void RegisterNode(APowerNode* Node);
+
+	/** Unregisters a node from the network. */
 	void UnregisterNode(APowerNode* Node);
 
-	// Rebuild the graph (node connections)
+	/** Rebuilds connections between all registered nodes. */
 	void RebuildConnections();
 
-	// BFS power propagation from the source
+	/** Propagates power from the source node using BFS. */
 	void PropagatePower(APowerNode* SourceNode);
 
 private:
-	// Node adjacency list
+	// =============================================================
+	// PRIVATE DATA
+	// =============================================================
+	/** Adjacency list for node connections. */
 	TMap<APowerNode*, TArray<APowerNode*>> PowerGraph;
 
-	// All active nodes
+	/** List of all registered power nodes. */
 	UPROPERTY()
 	TArray<APowerNode*> AllNodes;
 };

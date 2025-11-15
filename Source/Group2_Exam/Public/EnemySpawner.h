@@ -1,3 +1,4 @@
+// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
 
 
 #pragma once
@@ -6,34 +7,53 @@
 #include "GameFramework/Actor.h"
 #include "EnemySpawner.generated.h"
 
+class AEnemyCharacter;  // Forward declaration
 
-class AEnemyCharacter;
-
-
+/**
+ * AEnemySpawner
+ * 
+ * Actor that spawns enemies at regular intervals.
+ */
 UCLASS()
 class GROUP2_EXAM_API AEnemySpawner : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
+
+public:
+	// =============================================================
+	// CONSTRUCTOR
+	// =============================================================
+	/** Sets default values for this actor's properties. */
 	AEnemySpawner();
 
 protected:
-	// Called when the game starts or when spawned
+	// =============================================================
+	// OVERRIDES
+	// =============================================================
+	/** Called when the game starts or when spawned. */
 	virtual void BeginPlay() override;
 
+	// =============================================================
+	// SPAWNER PROPERTIES
+	// =============================================================
+	/** Class of the enemy to spawn. */
 	UPROPERTY(EditAnywhere, Category = "Spawner")
 	TSubclassOf<AEnemyCharacter> EnemyClass;
 
+	/** Time interval between spawns. */
 	UPROPERTY(EditAnywhere, Category = "Spawner")
 	float SpawnTime = 2.0f;
 
-
 private:
-	FTimerHandle SpawnTimer;
-
+	// =============================================================
+	// PRIVATE FUNCTIONS
+	// =============================================================
+	/** Spawns a single enemy instance. */
 	void SpawnEnemy();
 
-	
+	// =============================================================
+	// PRIVATE DATA
+	// =============================================================
+	/** Timer handle for spawning interval. */
+	FTimerHandle SpawnTimer;
 };

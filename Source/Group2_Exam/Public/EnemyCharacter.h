@@ -1,69 +1,116 @@
+// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
+
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "PowerNode.h"
-#include "GridManager.h"          // <-- NEW
+#include "GridManager.h"  // For pathfinding integration
 #include "EnemyCharacter.generated.h"
 
+class APowerNode;
+class AGridManager;  // Forward declaration
+
+/**
+ * AEnemyCharacter
+ * 
+ * Base class for enemy AI characters in the tower defense game.
+ * Handles movement, targeting, attacking, and damage.
+ */
 UCLASS()
 class GROUP2_EXAM_API AEnemyCharacter : public ACharacter
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	AEnemyCharacter();
+    // =============================================================
+    // CONSTRUCTOR AND OVERRIDES
+    // =============================================================
+    AEnemyCharacter();
 
 protected:
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
 public:
-	virtual void Tick(float DeltaTime) override;
+    virtual void Tick(float DeltaTime) override;
 
-	// ---------- STATS ----------
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float MaxHealth = 100.f;
+    // =============================================================
+    // STATS PROPERTIES
+    // =============================================================
+    /** Maximum health of the enemy. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    float MaxHealth = 100.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
-	float CurrentHealth;
+    /** Current health of the enemy. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
+    float CurrentHealth;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float MoveSpeed = 300.f;
+    /** Movement speed of the enemy. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    float MoveSpeed = 300.f;
 
-	// ---------- DAMAGE ----------
-	UFUNCTION(BlueprintCallable, Category = "Damage")
-	void TakeDamageCustom(float DamageAmount);
+    // =============================================================
+    // DAMAGE FUNCTIONS
+    // =============================================================
+    /** Applies custom damage to the enemy. */
+    UFUNCTION(BlueprintCallable, Category = "Damage")
+    void TakeDamageCustom(float DamageAmount);
 
-	UFUNCTION(BlueprintCallable, Category = "Damage")
-	void TakeDamageFromCannon(float Damage);
+    /** Applies damage specifically from a cannon. */
+    UFUNCTION(BlueprintCallable, Category = "Damage")
+    void TakeDamageFromCannon(float Damage);
 
-	// ---------- AI ----------
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	class APowerNode* TargetTower;
+    // =============================================================
+    // AI PROPERTIES
+    // =============================================================
+    /** Current target power node to attack. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+    APowerNode* TargetTower;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	float AttackRange = 150.f;
+    /** Range at which the enemy can attack the target. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+    float AttackRange = 150.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	float PathRecalcInterval = 1.f;
+    /** Interval for recalculating the path to the target. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+    float PathRecalcInterval = 1.f;
 
 private:
-	// ----- Helpers -----
-	void FindClosestTarget();
-	void CalculateGridPath();               // <-- NEW – uses GridManager A*
-	FVector GetNextPathPoint();
-	void AttackTarget();
+    // =============================================================
+    // PRIVATE HELPERS
+    // =============================================================
+    /** Finds the closest power node as the new target. */
+    void FindClosestTarget();
 
-	// ----- Timers -----
-	float TimeSinceLastSearch = 0.f;
-	float TimeSincePathRecalc = 0.f;
-	static constexpr float SearchInterval = 0.5f;
+    /** Calculates A* path to the target using GridManager. */
+    void CalculateGridPath();
 
-	// ----- Path data -----
-	TArray<FVector> PathPoints;   // world-space points from GridManager
-	int32 CurrentPathIndex = 0;
+    /** Gets the next waypoint in the current path. */
+    FVector GetNextPathPoint();
 
-	// ----- Grid reference -----
-	UPROPERTY()
-	class AGridManager* GridMgr;
+    /** Attacks the current target if in range. */
+    void AttackTarget();
+
+    // =============================================================
+    // PRIVATE DATA
+    // =============================================================
+    /** Time since last target search. */
+    float TimeSinceLastSearch = 0.f;
+
+    /** Time since last path recalculation. */
+    float TimeSincePathRecalc = 0.f;
+
+    /** Interval for searching new targets. */
+    static constexpr float SearchInterval = 0.5f;
+
+    /** Array of world-space path points from A*. */
+    TArray<FVector> PathPoints;
+
+    /** Current index in the path points array. */
+    int32 CurrentPathIndex = 0;
+
+    /** Reference to the grid manager for pathfinding. */
+    UPROPERTY()
+    AGridManager* GridMgr;
 };

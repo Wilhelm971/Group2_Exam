@@ -1,177 +1,203 @@
+// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
+
 #include "PowerCannon.h"
 #include "EnemyCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 
+// =============================================================
+// CLASS DESCRIPTION
+// =============================================================
+// APowerCannon: A powered node that attacks nearby enemies when powered.
+// Extends APowerNode with firing logic and preview mode for placement.
 
+// =============================================================
+// CONSTRUCTOR
+// =============================================================
+// Sets up mesh and collision.
 APowerCannon::APowerCannon()
 {
-	PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = false;
 
-	// Create Mesh Component
-	CannonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CannonMesh"));
-	RootComponent = CannonMesh;
-	CannonMesh->SetMobility(EComponentMobility::Movable);
-	CannonMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	CannonMesh->SetCollisionObjectType(ECC_WorldDynamic);
-	CannonMesh->SetCollisionResponseToAllChannels(ECR_Block);
-	CannonMesh->SetGenerateOverlapEvents(true);
+    // Create mesh component.
+    CannonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CannonMesh"));
+    RootComponent = CannonMesh;
+    CannonMesh->SetMobility(EComponentMobility::Movable);
+    CannonMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    CannonMesh->SetCollisionObjectType(ECC_WorldDynamic);
+    CannonMesh->SetCollisionResponseToAllChannels(ECR_Block);
+    CannonMesh->SetGenerateOverlapEvents(true);
 
-	// DEFAULT CYLINDER MESH (for testing - override in Blueprint/Editor)
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
-	if (MeshAsset.Succeeded())
-	{
-		CannonStaticMeshAsset = MeshAsset.Object;
-	}
-	
+    // Load default mesh (cylinder for testing).
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+    if (MeshAsset.Succeeded())
+    {
+        CannonStaticMeshAsset = MeshAsset.Object;
+    }
 }
 
+// =============================================================
+// POST INITIALIZE COMPONENTS
+// =============================================================
+// Applies default mesh after components are created.
 void APowerCannon::PostInitializeComponents()
 {
-	Super::PostInitializeComponents();
+    Super::PostInitializeComponents();
 
-	if (CannonMesh && CannonStaticMeshAsset)
-	{
-		CannonMesh->SetStaticMesh(CannonStaticMeshAsset);
-	}
+    if (CannonMesh && CannonStaticMeshAsset)
+    {
+        CannonMesh->SetStaticMesh(CannonStaticMeshAsset);
+    }
 }
+
+// =============================================================
+// BEGIN PLAY
+// =============================================================
 void APowerCannon::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 }
 
-
+// =============================================================
+// PREVIEW MODE
+// =============================================================
+// Toggles preview mode for building placement.
 void APowerCannon::SetPreviewMode(bool bPreview)
 {
-	bIsPreviewMode = bPreview;
+    bIsPreviewMode = bPreview;
 
-	if (bPreview)
-	{
-		CannonMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		CannonMesh->SetVisibility(true);
-		// Start with valid preview material
-		if (PreviewValidMaterial)
-		{
-			CannonMesh->SetMaterial(0, PreviewValidMaterial);
-		}
-	}
-	else
-	{
-		CannonMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		if (NormalMaterial)
-		{
-			CannonMesh->SetMaterial(0, NormalMaterial);
-		}
-	}
+    if (bPreview)
+    {
+        CannonMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        CannonMesh->SetVisibility(true);
+        // Start with valid material.
+        if (PreviewValidMaterial)
+        {
+            CannonMesh->SetMaterial(0, PreviewValidMaterial);
+        }
+    }
+    else
+    {
+        CannonMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        if (NormalMaterial)
+        {
+            CannonMesh->SetMaterial(0, NormalMaterial);
+        }
+    }
 
-	CheckPlacementValidity();
+    CheckPlacementValidity();
 }
 
+// Checks if placement is valid (e.g., not too close to other nodes).
 void APowerCannon::CheckPlacementValidity()
 {
-	bPlacementValid = true;
+    bPlacementValid = true;
 
-	// Check distance to other PowerNodes
-	TArray<AActor*> AllNodes;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerNode::StaticClass(), AllNodes);
+    // Get all power nodes.
+    TArray<AActor*> AllNodes;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerNode::StaticClass(), AllNodes);
 
-	for (AActor* NodeActor : AllNodes)
-	{
-		if (NodeActor == this || !IsValid(NodeActor)) continue;
+    for (AActor* NodeActor : AllNodes)
+    {
+        if (NodeActor == this || !IsValid(NodeActor)) continue;
 
-		float Dist = FVector::Dist(GetActorLocation(), NodeActor->GetActorLocation());
-		if (Dist < MinPlacementDistance)
-		{
-			bPlacementValid = false;
-			break;
-		}
-	}
+        float Dist = FVector::Dist(GetActorLocation(), NodeActor->GetActorLocation());
+        if (Dist < MinPlacementDistance)
+        {
+            bPlacementValid = false;
+            break;
+        }
+    }
 
-	UpdatePreviewVisuals();
+    UpdatePreviewVisuals();
 }
 
+// Updates material based on placement validity.
 void APowerCannon::UpdatePreviewVisuals()
 {
-	if (!bIsPreviewMode) return;
+    if (!bIsPreviewMode) return;
 
-	UMaterialInterface* MatToUse = bPlacementValid ? PreviewValidMaterial : PreviewInvalidMaterial;
-	if (MatToUse)
-	{
-		CannonMesh->SetMaterial(0, MatToUse);
-	}
+    UMaterialInterface* MatToUse = bPlacementValid ? PreviewValidMaterial : PreviewInvalidMaterial;
+    if (MatToUse)
+    {
+        CannonMesh->SetMaterial(0, MatToUse);
+    }
 }
 
+// =============================================================
+// POWER MANAGEMENT
+// =============================================================
+// Receives power and starts firing timer.
 void APowerCannon::ReceivePower(APowerNode* FromNode)
 {
-	// Call parent to mark as powered
-	Super::ReceivePower(FromNode);
+    Super::ReceivePower(FromNode);
 
-	// Start firing loop if not already active
-	if (!GetWorld()->GetTimerManager().IsTimerActive(TimerHandle_Fire))
-	{
-		GetWorld()->GetTimerManager().SetTimer(
-			TimerHandle_Fire, this, &APowerCannon::TryShoot, FireInterval, true);
+    // Start firing if not already.
+    if (!GetWorld()->GetTimerManager().IsTimerActive(TimerHandle_Fire))
+    {
+        GetWorld()->GetTimerManager().SetTimer(
+            TimerHandle_Fire, this, &APowerCannon::TryShoot, FireInterval, true);
 
-		UE_LOG(LogTemp, Log, TEXT("%s is now powered and ready to fire!"), *GetName());
-	}
+        UE_LOG(LogTemp, Log, TEXT("%s is now powered and ready to fire!"), *GetName());
+    }
 }
 
+// Loses power and stops firing.
 void APowerCannon::LosePower()
 {
-	Super::LosePower();
-	// Stop firing
-	GetWorld()->GetTimerManager().ClearTimer(TimerHandle_Fire);
-	UE_LOG(LogTemp, Warning, TEXT("%s lost power and stopped firing."), *GetName());
+    Super::LosePower();
+    GetWorld()->GetTimerManager().ClearTimer(TimerHandle_Fire);
+    UE_LOG(LogTemp, Warning, TEXT("%s lost power and stopped firing."), *GetName());
 }
 
+// =============================================================
+// FIRING LOGIC
+// =============================================================
+// Attempts to shoot the nearest enemy.
 void APowerCannon::TryShoot()
 {
+    if (!bIsPowered) return;
 
-	if (!bIsPowered) return;
+    // Find all enemies.
+    TArray<AActor*> Enemies;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), Enemies);
 
-	// Find nearest enemy within AttackRange
-	TArray<AActor*> Enemies;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), Enemies);
+    AActor* ClosestEnemy = nullptr;
+    float ClosestDist = FLT_MAX;
 
-	AActor* ClosestEnemy = nullptr;
-	float ClosestDist = FLT_MAX;
+    for (AActor* Enemy : Enemies)
+    {
+        if (!Enemy) continue;
 
-	for (AActor* Enemy : Enemies)
-	{
-		if (!Enemy) continue;
+        float Dist = FVector::Dist(Enemy->GetActorLocation(), GetActorLocation());
+        if (Dist < AttackRange && Dist < ClosestDist)
+        {
+            ClosestDist = Dist;
+            ClosestEnemy = Enemy;
+        }
+    }
 
-		float Dist = FVector::Dist(Enemy->GetActorLocation(), GetActorLocation());
-		if (Dist < AttackRange && Dist < ClosestDist)
-		{
-			ClosestDist = Dist;
-			ClosestEnemy = Enemy;
-		}
-	}
-
-	if (ClosestEnemy)
-	{
-		FireAtEnemy(ClosestEnemy);
-	}
-	
+    if (ClosestEnemy)
+    {
+        FireAtEnemy(ClosestEnemy);
+    }
 }
 
-
-
+// Fires at a specific enemy target.
 void APowerCannon::FireAtEnemy(AActor* Target)
 {
-	
-	if (!Target) return;
+    if (!Target) return;
 
-	// You could spawn a projectile or apply damage directly
-	if (AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Target))
-	{
-		Enemy->TakeDamageFromCannon(Damage);
-	}
+    // Apply damage if valid enemy.
+    if (AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Target))
+    {
+        Enemy->TakeDamageFromCannon(Damage);
+    }
 
-	DrawDebugLine(GetWorld(), GetActorLocation(), Target->GetActorLocation(),
-		FColor::Red, false, 0.2f, 0, 2.0f);
+    // Debug line for shot visualization.
+    DrawDebugLine(GetWorld(), GetActorLocation(), Target->GetActorLocation(),
+                  FColor::Red, false, 0.2f, 0, 2.0f);
 
-	UE_LOG(LogTemp, Log, TEXT("%s fired at %s"), *GetName(), *Target->GetName());
-	
+    UE_LOG(LogTemp, Log, TEXT("%s fired at %s"), *GetName(), *Target->GetName());
 }

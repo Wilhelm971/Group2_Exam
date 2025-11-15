@@ -1,28 +1,38 @@
+// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
+
 #include "TopDownCameraPawn.h"
 
-// Sets default values
+// =============================================================
+// CLASS DESCRIPTION
+// =============================================================
+// ATopDownCameraPawn: A custom pawn for top-down camera setup.
+// This class initializes a camera with a spring arm for isometric/top-down views.
+
+// =============================================================
+// CONSTRUCTOR
+// =============================================================
+// Sets default values for the pawn and its components.
 ATopDownCameraPawn::ATopDownCameraPawn()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Enable ticking for potential dynamic updates (can be disabled for performance).
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Root
+	// Create root component.
 	USceneComponent* RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(RootComp);
 
-	// Spring Arm
+	// Create spring arm for camera positioning.
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 2500.f;
-	CameraBoom->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
-	CameraBoom->bDoCollisionTest = false;
+	CameraBoom->TargetArmLength = 2500.f;  // Default arm length for zoom level.
+	CameraBoom->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));  // Isometric angle.
+	CameraBoom->bDoCollisionTest = false;  // Disable collision to avoid camera clipping.
 	CameraBoom->bInheritPitch = false;
 	CameraBoom->bInheritYaw = false;
 	CameraBoom->bInheritRoll = false;
 
-	// Camera
+	// Create camera component.
 	TopDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	TopDownCamera->SetupAttachment(CameraBoom);
-	TopDownCamera->bUsePawnControlRotation = false;
+	TopDownCamera->bUsePawnControlRotation = false;  // Camera doesn't follow pawn rotation.
 }
-
