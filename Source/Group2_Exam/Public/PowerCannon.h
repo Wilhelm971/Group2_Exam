@@ -37,7 +37,7 @@ public:
 
 	// How far the cannon can detect and shoot enemies
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cannon")
-	float AttackRange = 500.0f;
+	float AttackRange = 350.0f;
 
 	// Projectile or damage settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Cannon")
@@ -63,7 +63,7 @@ public:
 	bool bPlacementValid = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building", meta = (ClampMin = "50.0"))
-	float MinPlacementDistance = 200.0f;
+	float MinPlacementDistance = 300.0f;
 
 
 	// NEW FUNCTIONS 
