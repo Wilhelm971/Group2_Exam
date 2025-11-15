@@ -20,6 +20,9 @@ void UPowerNetworkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     Super::Initialize(Collection);
     PowerGraph.Empty();
     AllNodes.Empty();
+    bIsPropagating = false;
+    bShowGraph = false;
+    bIsAllowedDeleteLines = false;
 }
 
 // =============================================================
@@ -59,6 +62,11 @@ void UPowerNetworkSubsystem::UnregisterNode(APowerNode* Node)
 // Reconstructs the power graph based on node ranges using sphere overlaps for optimization.
 void UPowerNetworkSubsystem::RebuildConnections()
 {
+
+    // Allows it to Removes all debug lines
+    bIsAllowedDeleteLines = true;
+
+    
     PowerGraph.Empty();
 
     // Filter valid nodes to avoid null checks later.
@@ -98,7 +106,12 @@ void UPowerNetworkSubsystem::RebuildConnections()
             if (NodeB && FVector::Dist(LocA, NodeB->GetActorLocation()) <= Range)
             {
                 Neighbors.Add(NodeB);
-                // Optional debug: DrawDebugLine(GetWorld(), LocA, NodeB->GetActorLocation(), FColor::Yellow, false, 2.0f, 0, 1.5f);
+                // Draw persistent yellow line for connections (visible at all times).
+                // This lets you see the whole graph, and all the connections to each node.
+                if (bShowGraph)
+                {
+                    DrawDebugLine(GetWorld(), LocA, NodeB->GetActorLocation(), FColor::Yellow, true, -1.0f, 0, 1.5f);
+                }
             }
         }
 
@@ -109,35 +122,72 @@ void UPowerNetworkSubsystem::RebuildConnections()
 // =============================================================
 // PROPAGATE POWER
 // =============================================================
-// Propagates power from a source node using BFS traversal.
+// Propagates power from a source node using timed BFS for visualization.
 void UPowerNetworkSubsystem::PropagatePower(APowerNode* SourceNode)
 {
     if (!SourceNode || !PowerGraph.Contains(SourceNode)) return;
+    
+    if (bIsPropagating) return;  // Ignore new propagation until current finishes
 
-    TSet<APowerNode*> Visited;
-    TQueue<APowerNode*> Queue;
+    if (bIsAllowedDeleteLines)
+    {
+        // Deletes all debug lines if allowed
+        FlushPersistentDebugLines(GetWorld());
+        bIsAllowedDeleteLines = false;
+    }
 
-    Queue.Enqueue(SourceNode);
+    
+    bIsPropagating = true;
+    
+    // Clear previous propagation
+    Visited.Reset();
+    PropagationQueue.Empty();
+    GetWorld()->GetTimerManager().ClearTimer(PropagationTimer);
+
+    // Start propagation from source
+    PropagationQueue.Enqueue(TPair<APowerNode*, APowerNode*>(nullptr, SourceNode));
     Visited.Add(SourceNode);
 
-    while (!Queue.IsEmpty())
+    // Start the timer for step-by-step propagation
+    GetWorld()->GetTimerManager().SetTimer(PropagationTimer, this, &UPowerNetworkSubsystem::ProcessPropagationStep, PropagationDelay, true);
+}
+
+
+// =============================================================
+// PROCESS PROPAGATION STEP
+// =============================================================
+// Processes one step of the propagation queue with delay for visualization.
+void UPowerNetworkSubsystem::ProcessPropagationStep()
+{
+   TPair<APowerNode*, APowerNode*> Step;
+    if (!PropagationQueue.Dequeue(Step))
     {
-        APowerNode* Current = nullptr;
-        Queue.Dequeue(Current);
-        if (!Current) continue;
+        GetWorld()->GetTimerManager().ClearTimer(PropagationTimer);
+        bIsPropagating = false;
+        return;
+    }
 
-        Current->ReceivePower(nullptr);
+    APowerNode* From = Step.Key;
+    APowerNode* Current = Step.Value;
 
-        for (APowerNode* Neighbor : PowerGraph[Current])
+    // Activate the node
+    Current -> ReceivePower(From);
+
+    // Visualize the power flow if from a previous node
+
+    if (From)
+    {
+        DrawDebugLine(GetWorld(), From->GetActorLocation(), Current->GetActorLocation(), FColor::Cyan, true, -1.0f, 0, 8.0f);
+    }
+
+    // Enqueue neighbors
+    for (APowerNode* Neighbor : PowerGraph[Current])
+    {
+        if (!Visited.Contains(Neighbor))
         {
-            if (!Visited.Contains(Neighbor))
-            {
-                Visited.Add(Neighbor);
-                Queue.Enqueue(Neighbor);
-
-                // Debug visualization: Draw power propagation line.
-                DrawDebugLine(GetWorld(), Current->GetActorLocation(), Neighbor->GetActorLocation(), FColor::Cyan, false, 2.0f, 0, 8.0f);
-            }
+            Visited.Add(Neighbor);
+            PropagationQueue.Enqueue(TPair<APowerNode*, APowerNode*>(Current, Neighbor));
         }
     }
+
 }

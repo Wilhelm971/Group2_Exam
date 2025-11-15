@@ -41,7 +41,20 @@ public:
 	/** Propagates power from the source node using BFS. */
 	void PropagatePower(APowerNode* SourceNode);
 
+	// Switch to turn on or off the graph
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Graph")
+	bool bShowGraph;
+
+
+	
+
 private:
+	// =============================================================
+	// PRIVATE FUNCTIONS
+	// =============================================================
+	/** Processes one step of the propagation with delay for visualization. */
+	void ProcessPropagationStep();
+	
 	// =============================================================
 	// PRIVATE DATA
 	// =============================================================
@@ -51,4 +64,22 @@ private:
 	/** List of all registered power nodes. */
 	UPROPERTY()
 	TArray<APowerNode*> AllNodes;
+
+	/** Timer handle for propagation steps. */
+	FTimerHandle PropagationTimer;
+
+	/** Queue for pending propagation steps (From, Current). */
+	TQueue<TPair<APowerNode*, APowerNode*>> PropagationQueue;
+
+	/** Set of visited nodes during propagation. */
+	TSet<APowerNode*> Visited;
+
+	/** Delay between propagation steps for visualization (in seconds). */
+	float PropagationDelay = 0.2f;
+
+	/** Flag indicating if propagation is currently in progress. */
+	bool bIsPropagating = false;
+
+	// check if it should Redraw the connections
+	bool bIsAllowedDeleteLines = false;
 };

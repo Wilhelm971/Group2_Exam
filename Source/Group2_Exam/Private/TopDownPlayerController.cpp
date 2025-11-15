@@ -157,6 +157,7 @@ void ATopDownPlayerController::PlaceBuilding(const FInputActionValue& Value)
     bBuildingModeActive = false;
 
 
+    
     if (UWorld* World = GetWorld())
     {
         if (UPowerNetworkSubsystem* Net = World->GetSubsystem<UPowerNetworkSubsystem>())
@@ -165,6 +166,8 @@ void ATopDownPlayerController::PlaceBuilding(const FInputActionValue& Value)
             Net->RebuildConnections();
         }
     }
+
+    
     // TODO: Implement currency spending, SFX, VFX.
 }
 

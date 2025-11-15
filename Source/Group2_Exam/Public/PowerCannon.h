@@ -90,7 +90,7 @@ public:
 
     /** Minimum distance to other nodes for valid placement. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building", meta = (ClampMin = "50.0"))
-    float MinPlacementDistance = 300.0f;
+    float MinPlacementDistance = 250.0f;
 
     // =============================================================
     // BUILDING FUNCTIONS
