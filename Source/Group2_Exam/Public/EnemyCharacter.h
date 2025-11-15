@@ -1,16 +1,13 @@
 // Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
 
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "PowerNode.h"
-#include "GridManager.h"  // For pathfinding integration
 #include "EnemyCharacter.generated.h"
 
-class APowerNode;
-class AGridManager;  // Forward declaration
+class APowerNode;  // Forward declaration (replaces include)
+class AGridManager;  // Forward declaration (replaces include)
 
 /**
  * AEnemyCharacter

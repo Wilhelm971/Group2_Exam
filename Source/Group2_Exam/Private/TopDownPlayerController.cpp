@@ -3,6 +3,8 @@
 #include "TopDownPlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "PowerCannon.h"
+#include "PowerNetworkSubsystem.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -154,6 +156,15 @@ void ATopDownPlayerController::PlaceBuilding(const FInputActionValue& Value)
     PreviewCannon = nullptr;
     bBuildingModeActive = false;
 
+
+    if (UWorld* World = GetWorld())
+    {
+        if (UPowerNetworkSubsystem* Net = World->GetSubsystem<UPowerNetworkSubsystem>())
+        {
+            UE_LOG(LogTemp, Log, TEXT("Updates connections after placing new building"));
+            Net->RebuildConnections();
+        }
+    }
     // TODO: Implement currency spending, SFX, VFX.
 }
 

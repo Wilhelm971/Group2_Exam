@@ -5,12 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "InputActionValue.h"
-#include "PowerCannon.h"  // For CannonToPlaceClass and PreviewCannon
 #include "TopDownPlayerController.generated.h"
 
 class UInputMappingContext;
 class UInputAction;
 class APawn;  // Forward declaration for ControlledPawn
+class APowerCannon;  // Forward declaration (replaces include for CannonToPlaceClass and PreviewCannon)
 
 /**
  * ATopDownPlayerController

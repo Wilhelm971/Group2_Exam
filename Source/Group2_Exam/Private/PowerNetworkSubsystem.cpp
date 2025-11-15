@@ -3,6 +3,7 @@
 #include "PowerNetworkSubsystem.h"
 #include "PowerNode.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // =============================================================
 // CLASS DESCRIPTION
@@ -30,7 +31,8 @@ void UPowerNetworkSubsystem::RegisterNode(APowerNode* Node)
     if (!Node) return;
 
     AllNodes.AddUnique(Node);
-    RebuildConnections();  // Rebuild graph (optimize in future for large networks).
+    //RebuildConnections();  // Rebuild graph (optimized for large networks).
+    // Rebuilds Connections in PlayerController when the building is placed down, and not in preview mode
 }
 
 // =============================================================
@@ -54,26 +56,49 @@ void UPowerNetworkSubsystem::UnregisterNode(APowerNode* Node)
 // =============================================================
 // REBUILD CONNECTIONS
 // =============================================================
-// Reconstructs the power graph based on node ranges.
+// Reconstructs the power graph based on node ranges using sphere overlaps for optimization.
 void UPowerNetworkSubsystem::RebuildConnections()
 {
     PowerGraph.Empty();
 
-    for (APowerNode* NodeA : AllNodes)
+    // Filter valid nodes to avoid null checks later.
+    TArray<APowerNode*> ValidNodes;
+    ValidNodes.Reserve(AllNodes.Num());
+    for (APowerNode* Node : AllNodes)
     {
-        if (!NodeA) continue;
+        if (Node)
+        {
+            ValidNodes.Add(Node);
+        }
+    }
 
+    if (ValidNodes.IsEmpty()) return;
+
+    for (APowerNode* NodeA : ValidNodes)
+    {
         TArray<APowerNode*> Neighbors;
 
-        for (APowerNode* NodeB : AllNodes)
-        {
-            if (NodeA == NodeB || !NodeB) continue;
+        const FVector LocA = NodeA->GetActorLocation();
+        const float Range = NodeA->PowerRange;
 
-            float Distance = FVector::Dist(NodeA->GetActorLocation(), NodeB->GetActorLocation());
-            if (Distance <= NodeA->PowerRange)
+        // Perform sphere overlap to find potential neighbors.
+        TArray<AActor*> OutActors;
+        TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+        ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldDynamic));  // Adjust channel if needed (e.g., ECC_WorldDynamic for PowerCannon).
+
+        TArray<AActor*> IgnoreActors;
+        IgnoreActors.Add(NodeA);
+
+        UKismetSystemLibrary::SphereOverlapActors(GetWorld(), LocA, Range, ObjectTypes, APowerNode::StaticClass(), IgnoreActors, OutActors);
+
+        // Filter and check exact distance.
+        for (AActor* Act : OutActors)
+        {
+            APowerNode* NodeB = Cast<APowerNode>(Act);
+            if (NodeB && FVector::Dist(LocA, NodeB->GetActorLocation()) <= Range)
             {
                 Neighbors.Add(NodeB);
-                // Optional debug: DrawDebugLine(GetWorld(), NodeA->GetActorLocation(), NodeB->GetActorLocation(), FColor::Yellow, false, 2.0f, 0, 1.5f);
+                // Optional debug: DrawDebugLine(GetWorld(), LocA, NodeB->GetActorLocation(), FColor::Yellow, false, 2.0f, 0, 1.5f);
             }
         }
 

@@ -36,7 +36,7 @@ public:
     // =============================================================
     /** Range within which this node can transmit power to others. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power")
-    float PowerRange = 400.0f;
+    float PowerRange = 500.0f;
 
     /** Flag indicating if this node is currently powered. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Power")
