@@ -21,8 +21,8 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/Source/Group2_Exam/Private/PowerNetworkManager.cpp" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Source/Group2_Exam/Public/PowerNetworkManager.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../Program Files/Epic Games/UE_5.6/Engine/Source/Runtime/Core/Public/Algo/BinarySearch.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../Program Files/Epic Games/UE_5.6/Engine/Source/Runtime/Core/Public/Templates/Sorting.h" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -186,6 +186,10 @@
       <workItem from="1763011766760" duration="3874000" />
       <workItem from="1763016074398" duration="3956000" />
       <workItem from="1763021838013" duration="623000" />
+      <workItem from="1763216610532" duration="537000" />
+      <workItem from="1763221035734" duration="1342000" />
+      <workItem from="1763235770566" duration="2454000" />
+      <workItem from="1763238339428" duration="10611000" />
     </task>
     <servers />
   </component>
