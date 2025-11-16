@@ -1,10 +1,10 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "PowerCannon.h"
 #include "NodeActor.generated.h"
+
 
 
 UENUM(BlueprintType)
@@ -23,21 +23,22 @@ UCLASS(BlueprintType)
 class GROUP2_EXAM_API ANodeActor : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ANodeActor(const FObjectInitializer& ObjectInitializer);
-
+	
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	void CalculateFCost();
 
+    UFUNCTION(BlueprintCallable, Category="A* Node")
 	void SetState(ENodeState NewState);
 
 	virtual void NotifyActorOnClicked(FKey ButtonPressed) override;
 
 	void ApplyColor(const FLinearColor& Color);
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Node")
 	int32 X = 0;
 
@@ -65,10 +66,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Components")
 	UStaticMeshComponent* TileMesh;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
+	class UBoxComponent* CollisionBox;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="A* Node")
 	ENodeState CurrentState = ENodeState::Default;
 
 	UPROPERTY()
 	UMaterialInstanceDynamic* DynamicMaterial;
 
+protected:
+	UFUNCTION()
+	void OnCollisionOverlap(UPrimitiveComponent* ColliderComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	//UFUNCTION()
+	//void OnCollisionEnd(UPrimitiveComponent* ColliderComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };

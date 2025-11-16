@@ -2,7 +2,9 @@
 
 
 #include "NodeActor.h"
+#include "PowerCannon.h"
 #include "Components/TextRenderComponent.h"
+#include "Components/BoxComponent.h"
 
 
 ANodeActor::ANodeActor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
@@ -17,7 +19,14 @@ ANodeActor::ANodeActor(const FObjectInitializer& ObjectInitializer) : Super(Obje
 	TileMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	TileMesh->SetCollisionResponseToChannel(ECC_Visibility, ECollisionResponse::ECR_Block);
 	TileMesh->bHiddenInGame = false;
-	
+
+	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollider"));
+	CollisionBox->SetupAttachment(TileMesh);
+	CollisionBox->SetGenerateOverlapEvents(true);
+	CollisionBox->SetMobility(EComponentMobility::Static);
+
+	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ANodeActor::OnCollisionOverlap);
+	//CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ANodeActor::OnCollisionEnd);
 }
 
 void ANodeActor::OnConstruction(const FTransform& Transform)
@@ -46,6 +55,22 @@ void ANodeActor::ApplyColor(const FLinearColor& Color)
 	if (DynamicMaterial)
 	{
 		DynamicMaterial->SetVectorParameterValue(TEXT("Color"), Color);
+	}
+}
+
+void ANodeActor::OnCollisionOverlap(
+	UPrimitiveComponent* ColliderComp,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult
+	)
+{
+	if (OtherActor && (OtherActor != this) && OtherComp) 
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
+		SetState(ENodeState::Blocked);
 	}
 }
 
@@ -80,6 +105,7 @@ void ANodeActor::SetState(ENodeState NewState)
 		break;
 	}
 }
+
 
 void ANodeActor::NotifyActorOnClicked(FKey ButtonPressed)
 {
