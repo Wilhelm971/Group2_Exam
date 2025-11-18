@@ -7,7 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "EnemySpawner.generated.h"
 
-class AEnemyCharacter;  // Forward declaration
+class AEnemyPawn;  // Forward declaration
 
 /**
  * AEnemySpawner
@@ -38,7 +38,7 @@ protected:
 	// =============================================================
 	/** Class of the enemy to spawn. */
 	UPROPERTY(EditAnywhere, Category = "Spawner")
-	TSubclassOf<AEnemyCharacter> EnemyClass;
+	TSubclassOf<AEnemyPawn> EnemyClass;
 
 	/** Time interval between spawns. */
 	UPROPERTY(EditAnywhere, Category = "Spawner")

@@ -128,6 +128,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Grid")
     void MarkObstacles();
 
+    /** Checks if index is within grid bounds. */
+    bool IsValidIndex(const FIntPoint& Idx) const;
+
 private:
     // =============================================================
     // PRIVATE PATHFINDING HELPERS
@@ -138,8 +141,7 @@ private:
     /** Reconstructs path from came-from map. */
     TArray<FIntPoint> ReconstructPath(TMap<FIntPoint, FIntPoint>& CameFrom, FIntPoint Current) const;
 
-    /** Checks if index is within grid bounds. */
-    bool IsValidIndex(const FIntPoint& Idx) const;
+
 
     /** Gets neighboring indices (4-directional). */
     TArray<FIntPoint> GetNeighbors(const FIntPoint& Idx) const;
