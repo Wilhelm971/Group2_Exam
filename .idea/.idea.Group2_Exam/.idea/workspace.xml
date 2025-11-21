@@ -18,6 +18,9 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -36,6 +39,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "C/C++ Project.Group2_Exam.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "Marcus__V2",
@@ -213,7 +217,7 @@
       <workItem from="1763221035734" duration="1342000" />
       <workItem from="1763235770566" duration="2454000" />
       <workItem from="1763238339428" duration="10611000" />
-      <workItem from="1763724465013" duration="874000" />
+      <workItem from="1763724465013" duration="10119000" />
     </task>
     <servers />
   </component>

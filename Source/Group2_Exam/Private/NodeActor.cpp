@@ -4,8 +4,10 @@
 
 #include "NodeActor.h"
 #include "Components/TextRenderComponent.h"
+#include "PowerNode.h"
 #include "Components/BoxComponent.h"
 
+APowerNode* PowerNode;
 // =============================================================
 // CLASS DESCRIPTION
 // =============================================================
@@ -36,7 +38,7 @@ ANodeActor::ANodeActor(const FObjectInitializer& ObjectInitializer) : Super(Obje
 	CollisionBox->SetMobility(EComponentMobility::Static);
 
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ANodeActor::OnCollisionOverlap);
-	//CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ANodeActor::OnCollisionEnd);
+	CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ANodeActor::OnCollisionEnd);
 }
 
 void ANodeActor::OnConstruction(const FTransform& Transform)
@@ -69,12 +71,19 @@ void ANodeActor::OnCollisionOverlap(
 	const FHitResult& SweepResult
 	)
 {
-	if (OtherActor && (OtherActor != this) && OtherComp) 
+	if (OtherActor == PowerNode && (OtherActor != this) && OtherComp) 
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
-		SetState(ENodeState::Blocked);
+		SetState(ENodeState::Target);
 	}
 }
+
+void ANodeActor::OnCollisionEnd(UPrimitiveComponent* ColliderComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex)
+{
+	SetState(ENodeState::Default);
+}
+
 
 void ANodeActor::SetState(ENodeState NewState)
 {

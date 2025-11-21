@@ -62,10 +62,15 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
     float CurrentHealth;
 
+    /** For the enemy code to see if the actor has been destroyed */
+    UPROPERTY()
+    bool bIsDead = false;
+
     // =============================================================
     // DAMAGE FUNCTIONS
     // =============================================================
     /** Applies custom damage to the node. */
     UFUNCTION(BlueprintCallable, Category = "Damage")
     virtual void TakeDamageCustom(float DamageAmount);
+    
 };
