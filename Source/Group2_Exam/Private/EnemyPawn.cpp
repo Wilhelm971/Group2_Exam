@@ -3,6 +3,7 @@
 #include "EnemyPawn.h"
 #include "PowerNode.h"  // Assuming PowerNode.h exists
 #include "GridManager.h"
+#include "PowerCore.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -120,14 +121,14 @@ void AEnemyPawn::MoveToward(FVector Dir, float DeltaTime)
     SetActorRotation(Dir.Rotation());
 }
 
-// Find target (same)
+// Find target (target only active PowerCores)
 void AEnemyPawn::FindClosestTarget()
 {
     TargetNode = nullptr;
     float BestDist = FLT_MAX;
 
     TArray<AActor*> Nodes;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerNode::StaticClass(), Nodes);
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerCore::StaticClass(), Nodes);  // Only active cores
 
     for (AActor* A : Nodes)
     {

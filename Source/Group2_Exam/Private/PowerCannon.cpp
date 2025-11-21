@@ -1,7 +1,7 @@
 // Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
 
 #include "PowerCannon.h"
-#include "EnemyCharacter.h"
+#include "EnemyPawn.h"  // Updated to EnemyPawn from EnemyCharacter
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
@@ -57,6 +57,9 @@ void APowerCannon::PostInitializeComponents()
 void APowerCannon::BeginPlay()
 {
     Super::BeginPlay();
+
+    // Start firing timer always, but check conditions inside TryShoot.
+    GetWorld()->GetTimerManager().SetTimer(TimerHandle_Fire, this, &APowerCannon::TryShoot, FireInterval, true);
 }
 
 // =============================================================
@@ -128,27 +131,16 @@ void APowerCannon::UpdatePreviewVisuals()
 // =============================================================
 // POWER MANAGEMENT
 // =============================================================
-// Receives power and starts firing timer.
+// Receives power (legacy, but kept for compatibility).
 void APowerCannon::ReceivePower(APowerNode* FromNode)
 {
     Super::ReceivePower(FromNode);
-
-    // Start firing if not already.
-    if (!GetWorld()->GetTimerManager().IsTimerActive(TimerHandle_Fire))
-    {
-        GetWorld()->GetTimerManager().SetTimer(
-            TimerHandle_Fire, this, &APowerCannon::TryShoot, FireInterval, true);
-
-        UE_LOG(LogTemp, Log, TEXT("%s is now powered and ready to fire!"), *GetName());
-    }
 }
 
-// Loses power and stops firing.
+// Loses power.
 void APowerCannon::LosePower()
 {
     Super::LosePower();
-    GetWorld()->GetTimerManager().ClearTimer(TimerHandle_Fire);
-    UE_LOG(LogTemp, Warning, TEXT("%s lost power and stopped firing."), *GetName());
 }
 
 // =============================================================
@@ -157,11 +149,11 @@ void APowerCannon::LosePower()
 // Attempts to shoot the nearest enemy.
 void APowerCannon::TryShoot()
 {
-    if (!bIsPowered) return;
+    if (!bIsPowered || CurrentPower < 100.0f) return;
 
     // Find all enemies.
     TArray<AActor*> Enemies;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), Enemies);
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyPawn::StaticClass(), Enemies);
 
     AActor* ClosestEnemy = nullptr;
     float ClosestDist = FLT_MAX;
@@ -181,6 +173,7 @@ void APowerCannon::TryShoot()
     if (ClosestEnemy)
     {
         FireAtEnemy(ClosestEnemy);
+        CurrentPower -= 100.0f;
     }
 }
 
@@ -190,7 +183,7 @@ void APowerCannon::FireAtEnemy(AActor* Target)
     if (!Target) return;
 
     // Apply damage if valid enemy.
-    if (AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Target))
+    if (AEnemyPawn* Enemy = Cast<AEnemyPawn>(Target))
     {
         Enemy->TakeDamageFromCannon(Damage);
     }

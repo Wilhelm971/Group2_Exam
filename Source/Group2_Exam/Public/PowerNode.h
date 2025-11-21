@@ -42,11 +42,19 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Power")
     bool bIsPowered = false;
 
+    /** Current power level in the node. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Power")
+    float CurrentPower = 0.0f;
+
     // =============================================================
     // POWER FUNCTIONS
     // =============================================================
     /** Called when this node receives power from another. */
     virtual void ReceivePower(APowerNode* FromNode);
+
+    /** Receives a power amount from the network. */
+    UFUNCTION(BlueprintCallable, Category = "Power")
+    virtual void ReceivePowerAmount(float Amount);
 
     /** Called when this node loses power. */
     virtual void LosePower();

@@ -8,6 +8,7 @@
 #include "PowerNetworkSubsystem.generated.h"
 
 class APowerNode;  // Forward declaration
+class APowerCore;   // Forward declaration
 
 /**
  * UPowerNetworkSubsystem
@@ -38,19 +39,25 @@ public:
 	/** Rebuilds connections between all registered nodes. */
 	void RebuildConnections();
 
-	/** Propagates power from the source node using BFS. */
-	void PropagatePower(APowerNode* SourceNode);
+	/** Distributes power from a specific core to its connected buildings. */
+	void DistributePowerFromCore(APowerCore* SourceCore, float Amount);
 
 
-
-	
 
 private:
 	// =============================================================
 	// PRIVATE FUNCTIONS
 	// =============================================================
-	/** Processes one step of the propagation with delay for visualization. */
-	void ProcessPropagationStep();
+	/** Gets the connected component for a starting node. */
+	TSet<APowerNode*> GetConnectedComponent(APowerNode* StartNode);
+
+	void PulseAllCores();
+
+	
+	void StartPowerVisualization();
+
+	void ProcessVisualizationStep();
+
 	
 	// =============================================================
 	// PRIVATE DATA
@@ -61,6 +68,9 @@ private:
 	/** List of all registered power nodes. */
 	UPROPERTY()
 	TArray<APowerNode*> AllNodes;
+
+	/** Timer handle for global pulse. */
+	FTimerHandle GlobalPulseTimer;
 
 	/** Timer handle for propagation steps. */
 	FTimerHandle PropagationTimer;
@@ -74,9 +84,9 @@ private:
 	/** Delay between propagation steps for visualization (in seconds). */
 	float PropagationDelay = 0.2f;
 
-	/** Flag indicating if propagation is currently in progress. */
 	bool bIsPropagating = false;
 
-	// check if it should Redraw the connections
-	bool bIsAllowedDeleteLines = false;
+
+
+
 };

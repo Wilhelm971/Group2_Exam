@@ -2,6 +2,9 @@
 
 #include "PowerNode.h"
 #include "PowerNetworkSubsystem.h"
+#include "DormantPowerCores.h"
+#include "PowerCore.h"
+#include "Kismet/GameplayStatics.h"
 
 // =============================================================
 // CLASS DESCRIPTION
@@ -66,6 +69,12 @@ void APowerNode::ReceivePower(APowerNode* FromNode)
     }
 }
 
+// Receives power amount.
+void APowerNode::ReceivePowerAmount(float Amount)
+{
+    CurrentPower += Amount;
+}
+
 // Loses power and logs the change.
 void APowerNode::LosePower()
 {
@@ -79,7 +88,7 @@ void APowerNode::LosePower()
 // =============================================================
 // DAMAGE
 // =============================================================
-// Applies custom damage and destroys if health reaches zero.
+// Applies custom damage and handles destruction/conversion.
 void APowerNode::TakeDamageCustom(float DamageAmount)
 {
     if (DamageAmount <= 0.0f) return;
@@ -91,7 +100,44 @@ void APowerNode::TakeDamageCustom(float DamageAmount)
 
     if (CurrentHealth <= 0.0f)
     {
-        UE_LOG(LogTemp, Log, TEXT("%s DESTROYED!"), *GetName());
-        Destroy();
+        if (Cast<APowerCore>(this))
+        {
+            // Turn core into dormant.
+            if (UWorld* World = GetWorld())
+            {
+                FActorSpawnParameters Params;
+                Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+                ADormantPowerCores* NewDormant = World->SpawnActor<ADormantPowerCores>(GetActorLocation(), GetActorRotation(), Params);
+                if (NewDormant)
+                {
+                    UE_LOG(LogTemp, Log, TEXT("PowerCore %s turned into DormantPowerCores"), *GetName());
+                }
+
+                // Destroy the core (EndPlay unregisters).
+                Destroy();
+
+                // Rebuild connections.
+                if (UPowerNetworkSubsystem* Net = World->GetSubsystem<UPowerNetworkSubsystem>())
+                {
+                    Net->RebuildConnections();
+                }
+
+                // Check lose condition.
+                TArray<AActor*> Dormants;
+                UGameplayStatics::GetAllActorsOfClass(World, ADormantPowerCores::StaticClass(), Dormants);
+                if (Dormants.Num() >= 5)
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("LOSE CONDITION MET: 5 dormant PowerCores!"));
+                    // TODO: Notify GameMode or handle loss.
+                }
+            }
+        }
+        else
+        {
+            // Normal nodes (e.g., cannons) just destroy.
+            UE_LOG(LogTemp, Log, TEXT("%s DESTROYED!"), *GetName());
+            Destroy();
+        }
     }
 }

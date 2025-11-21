@@ -1,11 +1,14 @@
 // Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
 
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "PowerNode.h"
+#include "Components/StaticMeshComponent.h"
 #include "PowerCore.generated.h"
+
+class UStaticMesh;
+class UMaterialInterface;
 
 /**
  * APowerCore
@@ -28,6 +31,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+    virtual void PostInitializeComponents() override;
+
 	// =============================================================
 	// POWER PROPERTIES
 	// =============================================================
@@ -40,6 +45,25 @@ public:
 	// =============================================================
 	/** Emits a power pulse to the network. */
 	void EmitPowerPulse();
+
+    // =============================================================
+    // MESH AND MATERIALS
+    // =============================================================
+    /** Static mesh asset for the core. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+    UStaticMesh* CoreStaticMeshAsset;
+
+    /** Material for the core. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
+    UMaterialInterface* CoreMaterial;
+
+protected:
+    // =============================================================
+    // COMPONENTS
+    // =============================================================
+    /** Mesh component for the core. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UStaticMeshComponent* CoreMesh;
 
 private:
 	// =============================================================

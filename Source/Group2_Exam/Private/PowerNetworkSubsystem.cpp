@@ -2,14 +2,18 @@
 
 #include "PowerNetworkSubsystem.h"
 #include "PowerNode.h"
+#include "PowerCore.h"
+#include "DormantPowerCores.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"   // <-- added for GetAllActorsOfClass
+#include "TimerManager.h"
 
 // =============================================================
 // CLASS DESCRIPTION
 // =============================================================
 // UPowerNetworkSubsystem: Manages a graph of power nodes and their connections.
-// Handles registration, rebuilding connections, and power propagation via BFS.
+// Handles registration, rebuilding connections, and power distribution.
 
 // =============================================================
 // INITIALIZE
@@ -20,21 +24,29 @@ void UPowerNetworkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     Super::Initialize(Collection);
     PowerGraph.Empty();
     AllNodes.Empty();
-    bIsPropagating = false;
-    bIsAllowedDeleteLines = false;
+
+    // Set up global pulse timer (assuming PulseInterval = 5.0f, can make UProperty if needed)
+
+
+        
+    GetWorld()->GetTimerManager().SetTimer(
+        GlobalPulseTimer,
+        this,
+        &UPowerNetworkSubsystem::PulseAllCores,
+        5.0f, // PulseIntervall
+        true
+        );
 }
 
 // =============================================================
 // REGISTER NODE
 // =============================================================
-// Adds a node to the network and rebuilds connections.
+// Adds a node to the network.
 void UPowerNetworkSubsystem::RegisterNode(APowerNode* Node)
 {
     if (!Node) return;
 
     AllNodes.AddUnique(Node);
-    //RebuildConnections();  // Rebuild graph (optimized for large networks).
-    // Rebuilds Connections in PlayerController when the building is placed down, and not in preview mode
 }
 
 // =============================================================
@@ -61,10 +73,6 @@ void UPowerNetworkSubsystem::UnregisterNode(APowerNode* Node)
 // Reconstructs the power graph based on node ranges using sphere overlaps for optimization.
 void UPowerNetworkSubsystem::RebuildConnections()
 {
-
-    // Allows it to Removes all debug lines
-    bIsAllowedDeleteLines = true;
-
     
     PowerGraph.Empty();
 
@@ -98,6 +106,9 @@ void UPowerNetworkSubsystem::RebuildConnections()
 
         UKismetSystemLibrary::SphereOverlapActors(GetWorld(), LocA, Range, ObjectTypes, APowerNode::StaticClass(), IgnoreActors, OutActors);
 
+
+
+        
         // Filter and check exact distance.
         for (AActor* Act : OutActors)
         {
@@ -115,52 +126,163 @@ void UPowerNetworkSubsystem::RebuildConnections()
 
         PowerGraph.Add(NodeA, Neighbors);
     }
+
+    // After rebuilding, trigger an immediate pulse to distribute power and visualize
+    PulseAllCores();
+}
+
+
+// =============================================================
+// PULSE ALL CORES
+// =============================================================
+void UPowerNetworkSubsystem::PulseAllCores()
+{
+    if (!bIsPropagating)
+    {
+        bIsPropagating = true;
+        
+        TArray<AActor*> CoreActors;
+        UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerCore::StaticClass(), CoreActors);
+
+        for (AActor* Actor : CoreActors)
+        {
+            if (APowerCore* Core = Cast<APowerCore>(Actor))
+            {
+                DistributePowerFromCore(Core, 100.0f);
+            }
+        }
+
+        StartPowerVisualization();
+
+        
+    }
+}
+
+
+
+// =============================================================
+// DISTRIBUTE POWER FROM CORE
+// =============================================================
+void UPowerNetworkSubsystem::DistributePowerFromCore(APowerCore* SourceCore, float Amount)
+{
+    if (!SourceCore || !PowerGraph.Contains(SourceCore)) return;
+
+    // Get the connected component.
+    TSet<APowerNode*> Component = GetConnectedComponent(SourceCore);
+
+    // Update power states (set bIsPowered for all in component).
+    for (APowerNode* Node : Component)
+    {
+        Node->bIsPowered = true;
+    }
+
+    // Collect buildings (non-cores, including dormants).
+    TArray<APowerNode*> Buildings;
+    for (APowerNode* Node : Component)
+    {
+        if (!Cast<APowerCore>(Node))
+        {
+            Buildings.Add(Node);
+        }
+    }
+
+    if (Buildings.Num() == 0) return;
+
+    float PerBuilding = Amount / Buildings.Num();
+
+    for (APowerNode* Building : Buildings)
+    {
+        Building->ReceivePowerAmount(PerBuilding);
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("Distributed %.0f power from %s to %d buildings (%.2f each)"), Amount, *SourceCore->GetName(), Buildings.Num(), PerBuilding);
 }
 
 // =============================================================
-// PROPAGATE POWER
+// GET CONNECTED COMPONENT
 // =============================================================
-// Propagates power from a source node using timed BFS for visualization.
-void UPowerNetworkSubsystem::PropagatePower(APowerNode* SourceNode)
+TSet<APowerNode*> UPowerNetworkSubsystem::GetConnectedComponent(APowerNode* StartNode)
 {
-    if (!SourceNode || !PowerGraph.Contains(SourceNode)) return;
-    
-    if (bIsPropagating) return;  // Ignore new propagation until current finishes
+    TSet<APowerNode*> LocalVisited;
+    if (!StartNode) return LocalVisited;
 
-    if (bIsAllowedDeleteLines)
+    TQueue<APowerNode*> Queue;
+    Queue.Enqueue(StartNode);
+    LocalVisited.Add(StartNode);
+
+    while (!Queue.IsEmpty())
     {
-        // Deletes all debug lines if allowed
-        FlushPersistentDebugLines(GetWorld());
-        bIsAllowedDeleteLines = false;
+        APowerNode* Current;
+        Queue.Dequeue(Current);
+
+        const TArray<APowerNode*>* Neighbors = PowerGraph.Find(Current);
+        if (Neighbors)
+        {
+            for (APowerNode* Neighbor : *Neighbors)
+            {
+                if (!LocalVisited.Contains(Neighbor))
+                {
+                    LocalVisited.Add(Neighbor);
+                    Queue.Enqueue(Neighbor);
+                }
+            }
+        }
     }
 
-    
-    bIsPropagating = true;
-    
-    // Clear previous propagation
+    return LocalVisited;
+}
+
+
+
+// =============================================================
+// START POWER VISUALIZATION
+// =============================================================
+void UPowerNetworkSubsystem::StartPowerVisualization()
+{
+    // Clear old lines
+    FlushPersistentDebugLines(GetWorld());
+
+    // Clear previous visualization
     Visited.Reset();
     PropagationQueue.Empty();
     GetWorld()->GetTimerManager().ClearTimer(PropagationTimer);
 
-    // Start propagation from source
-    PropagationQueue.Enqueue(TPair<APowerNode*, APowerNode*>(nullptr, SourceNode));
-    Visited.Add(SourceNode);
+    // Find all active PowerCores
+    TArray<AActor*> CoreActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerCore::StaticClass(), CoreActors);
 
-    // Start the timer for step-by-step propagation
-    GetWorld()->GetTimerManager().SetTimer(PropagationTimer, this, &UPowerNetworkSubsystem::ProcessPropagationStep, PropagationDelay, true);
+    // Enqueue all sources (cores)
+    for (AActor* Actor : CoreActors)
+    {
+        if (APowerNode* Core = Cast<APowerNode>(Actor))
+        {
+            if (!Visited.Contains(Core))
+            {
+                PropagationQueue.Enqueue(TPair<APowerNode*, APowerNode*>(nullptr, Core));
+                Visited.Add(Core);
+            }
+        }
+    }
+
+    // Start the timer if there's something to visualize
+    if (!PropagationQueue.IsEmpty())
+    {
+        GetWorld()->GetTimerManager().SetTimer(PropagationTimer, this, &UPowerNetworkSubsystem::ProcessVisualizationStep, PropagationDelay, true);
+    }
+
+    
 }
 
-
 // =============================================================
-// PROCESS PROPAGATION STEP
+// PROCESS VISUALIZATION STEP
 // =============================================================
-// Processes one step of the propagation queue with delay for visualization.
-void UPowerNetworkSubsystem::ProcessPropagationStep()
+void UPowerNetworkSubsystem::ProcessVisualizationStep()
 {
-   TPair<APowerNode*, APowerNode*> Step;
+    TPair<APowerNode*, APowerNode*> Step;
     if (!PropagationQueue.Dequeue(Step))
     {
         GetWorld()->GetTimerManager().ClearTimer(PropagationTimer);
+
         bIsPropagating = false;
         return;
     }
@@ -168,24 +290,22 @@ void UPowerNetworkSubsystem::ProcessPropagationStep()
     APowerNode* From = Step.Key;
     APowerNode* Current = Step.Value;
 
-    // Activate the node
-    Current -> ReceivePower(From);
-
     // Visualize the power flow if from a previous node
-
     if (From)
     {
         DrawDebugLine(GetWorld(), From->GetActorLocation(), Current->GetActorLocation(), FColor::Cyan, true, -1.0f, 0, 8.0f);
     }
 
     // Enqueue neighbors
-    for (APowerNode* Neighbor : PowerGraph[Current])
+    if (const TArray<APowerNode*>* Neighbors = PowerGraph.Find(Current))
     {
-        if (!Visited.Contains(Neighbor))
+        for (APowerNode* Neighbor : *Neighbors)
         {
-            Visited.Add(Neighbor);
-            PropagationQueue.Enqueue(TPair<APowerNode*, APowerNode*>(Current, Neighbor));
+            if (!Visited.Contains(Neighbor))
+            {
+                Visited.Add(Neighbor);
+                PropagationQueue.Enqueue(TPair<APowerNode*, APowerNode*>(Current, Neighbor));
+            }
         }
     }
-
 }
