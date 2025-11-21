@@ -8,12 +8,11 @@
 #include "Components/ProgressBar.h"
 #include "MyHealthBar.generated.h"
 
-
-
 UCLASS()
 class GROUP2_EXAM_API UMyHealthBar : public UMyUserWidget
 {
 	GENERATED_BODY()
+
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
@@ -22,4 +21,5 @@ public:
 protected:
 	UPROPERTY(meta = (BindWidget), Category = "Health")
 	TObjectPtr<UProgressBar> HealthProgressBar;
+
 };

@@ -16,5 +16,5 @@ class GROUP2_EXAM_API UMyUserWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	// Add widget logic here
+	
 };
