@@ -29,9 +29,10 @@ AEnemyCharacter::AEnemyCharacter()
     MoveComp->bOrientRotationToMovement = true;
     MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f);
     MoveComp->MaxWalkSpeed = MoveSpeed;
-    MoveComp->GroundFriction = 4.f;
-    MoveComp->BrakingDecelerationWalking = 0.f;
     MoveComp->bRequestedMoveUseAcceleration = false;
+
+    MoveComp->AirControl = 1.0f;  // Full control in air (matches ground speed).
+    MoveComp->FallingLateralFriction = 0.0f;  // No drag while falling.
 
     // Collision setup.
     GetCapsuleComponent()->SetCollisionObjectType(ECC_Pawn);
@@ -49,6 +50,21 @@ void AEnemyCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
+
+    // Snap to ground if not already.
+    FHitResult SnapHit;
+    FVector SnapEnd = GetActorLocation() - FVector(0, 0, 200.0f);  // Short down trace.
+    if (GetWorld()->LineTraceSingleByChannel(SnapHit, GetActorLocation(), SnapEnd, ECC_WorldStatic, FCollisionQueryParams::DefaultQueryParam))
+    {
+        if (SnapHit.bBlockingHit)
+        {
+            FVector NewLoc = SnapHit.Location + FVector(0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+            SetActorLocation(NewLoc);
+            UE_LOG(LogTemp, Log, TEXT("%s SNAPPED to ground Z=%.1f"), *GetName(), NewLoc.Z);
+        }
+    }
+
+    
     // Find grid manager singleton.
     TArray<AActor*> Found;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGridManager::StaticClass(), Found);
@@ -72,6 +88,35 @@ void AEnemyCharacter::BeginPlay()
 void AEnemyCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    // Debug movement (remove later).
+    static float DebugTimer = 0.f;
+    DebugTimer += DeltaTime;
+    if (DebugTimer >= 0.5f)
+    {
+        bool bHasTarget = TargetTower && IsValid(TargetTower);
+        float DistToTarget = bHasTarget ? FVector::Dist(GetActorLocation(), TargetTower->GetActorLocation()) : -1.f;
+        FVector NextPt = GetNextPathPoint();
+        float DistToNext = FVector::Dist(GetActorLocation(), NextPt);
+        float VelSize = GetCharacterMovement()->Velocity.Size();
+        bool bGrounded = GetCharacterMovement()->IsMovingOnGround();
+        int32 PathLen = PathPoints.Num();
+
+        UE_LOG(LogTemp, Log, TEXT("🔍 %s | Target=%s | DistT=%.0f | DistN=%.0f | Vel=%.0f | Grounded=%s | Path=%d"),
+               *GetName(),
+               bHasTarget ? *TargetTower->GetName() : TEXT("NONE"),
+               DistToTarget,
+               DistToNext,
+               VelSize,
+               bGrounded ? TEXT("YES") : TEXT("NO"),
+               PathLen);
+
+        DebugTimer = 0.f;
+    }
+
+
+
+    
 
     // Retry finding target periodically.
     TimeSinceLastSearch += DeltaTime;
@@ -139,6 +184,7 @@ void AEnemyCharacter::FindClosestTarget()
     {
         UE_LOG(LogTemp, Log, TEXT("%s → %s (%.0f)"), *GetName(),
                *TargetTower->GetName(), BestDist);
+        UE_LOG(LogTemp, Log, TEXT("target found"));
     }
 }
 
@@ -156,25 +202,38 @@ void AEnemyCharacter::CalculateGridPath()
     FIntPoint StartIdx = GridMgr->WorldToGridIndex(StartWorld);
     FIntPoint EndIdx = GridMgr->WorldToGridIndex(EndWorld);
 
+
+
+    bool bStartValid = GridMgr->IsValidIndex(StartIdx);
+    bool bEndValid = GridMgr->IsValidIndex(EndIdx);
+
+    
+    UE_LOG(LogTemp, Log, TEXT("🗺️ %s PATH CALC | StartIdx=%d,%d (%s) | EndIdx=%d,%d (%s)"),
+           *GetName(), StartIdx.X, StartIdx.Y, bStartValid ? TEXT("OK") : TEXT("OUT"),
+           EndIdx.X, EndIdx.Y, bEndValid ? TEXT("OK") : TEXT("OUT"));
+
     TArray<FIntPoint> GridPath = GridMgr->FindPath(StartIdx, EndIdx);
 
     PathPoints.Empty();
     CurrentPathIndex = 0;
-
     if (GridPath.Num() > 0)
     {
         for (const FIntPoint& Idx : GridPath)
         {
-            FVector World = GridMgr->GridToWorldCenter(Idx);
-            PathPoints.Add(World);
+            PathPoints.Add(GridMgr->GridToWorldCenter(Idx));
         }
-
-        UE_LOG(LogTemp, Log, TEXT("A* path: %d points"), PathPoints.Num());
+        UE_LOG(LogTemp, Log, TEXT("✅ %s A* PATH: %d points"), *GetName(), PathPoints.Num());
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("No grid path to %s"), *TargetTower->GetName());
+        UE_LOG(LogTemp, Warning, TEXT("❌ %s NO PATH (direct fallback)"), *GetName());
     }
+
+
+
+
+    
+  
 }
 
 // Gets the next waypoint in the path.
@@ -204,6 +263,7 @@ void AEnemyCharacter::AttackTarget()
 
     const float Damage = 30.f * GetWorld()->DeltaTimeSeconds;
     TargetTower->TakeDamageCustom(Damage);
+    TargetTower = nullptr;
 }
 
 // Applies damage to the enemy.

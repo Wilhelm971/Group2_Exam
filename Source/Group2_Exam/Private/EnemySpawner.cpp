@@ -2,8 +2,9 @@
 
 
 #include "EnemySpawner.h"
-#include "EnemyCharacter.h"
+#include "EnemyPawn.h"
 #include "Engine/World.h"
+#include "Components/CapsuleComponent.h"
 
 // =============================================================
 // CLASS DESCRIPTION
@@ -43,33 +44,43 @@ void AEnemySpawner::SpawnEnemy()
 {
     if (!EnemyClass) return;
 
-    // Calculate random spawn location with offset.
     FVector SpawnLoc = GetActorLocation();
     SpawnLoc.X += FMath::RandRange(-300.0f, 300.0f);
     SpawnLoc.Y += FMath::RandRange(-300.0f, 300.0f);
-    SpawnLoc.Z += 1000.0f;  // Start above ground to trace down.
+    SpawnLoc.Z += 1000.0f;  // High start for trace.
 
-    // Trace downward to find ground level.
+    // Box size for sweep (match your enemy's box/mesh - e.g., half-extent 50u cube)
+    FVector BoxExtent = FVector(50.0f, 50.0f, 50.0f);  // Dynamic? Get from default object if needed.
+
+    // Sweep DOWN with BOX shape
     FHitResult Hit;
+    FVector TraceEnd = SpawnLoc - FVector(0, 0, 2000.0f);
+    FCollisionShape BoxShape = FCollisionShape::MakeBox(BoxExtent);
     bool bHit = GetWorld()->SweepSingleByChannel(
-        Hit, SpawnLoc, SpawnLoc - FVector(0, 0, 2000.0f), FQuat::Identity,
-        ECC_Visibility, FCollisionShape::MakeSphere(60.0f));  // Sphere size matches enemy.
+        Hit, SpawnLoc, TraceEnd, FQuat::Identity,
+        ECC_WorldStatic, BoxShape);
 
     if (bHit && Hit.bBlockingHit)
     {
-        SpawnLoc = Hit.Location;  // Set to exact ground hit location.
-        UE_LOG(LogTemp, Log, TEXT("Ground hit at Z=%.1f"), SpawnLoc.Z);
+        SpawnLoc = Hit.Location;  // Exact center on ground
+        UE_LOG(LogTemp, Log, TEXT("✅ Box HIT at Z=%.1f"), SpawnLoc.Z);
+    }
+    else
+    {
+        // Fallback: Spawner Z + half-height
+        SpawnLoc.Z = GetActorLocation().Z + BoxExtent.Z;
+        UE_LOG(LogTemp, Warning, TEXT("❌ Sweep MISS → Fallback Z=%.1f"), SpawnLoc.Z);
     }
 
-    // Spawn parameters with collision handling.
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-    // Spawn the enemy.
-    AEnemyCharacter* NewEnemy = GetWorld()->SpawnActor<AEnemyCharacter>(EnemyClass, SpawnLoc, GetActorRotation(), Params);
+    AEnemyPawn* NewEnemy = GetWorld()->SpawnActor<AEnemyPawn>(EnemyClass, SpawnLoc, GetActorRotation(), Params);
     if (NewEnemy)
     {
-        UE_LOG(LogTemp, Log, TEXT("✅ Spawned %s at %.1f Z (ground level!)"), *NewEnemy->GetName(), NewEnemy->GetActorLocation().Z);
+        FVector FinalLoc = NewEnemy->GetActorLocation();
+        UE_LOG(LogTemp, Log, TEXT("🎯 SPAWNED %s at X=%.0f Y=%.0f Z=%.0f"), 
+               *NewEnemy->GetName(), FinalLoc.X, FinalLoc.Y, FinalLoc.Z);
     }
 }
 

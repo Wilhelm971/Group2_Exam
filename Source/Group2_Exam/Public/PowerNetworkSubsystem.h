@@ -41,9 +41,6 @@ public:
 	/** Propagates power from the source node using BFS. */
 	void PropagatePower(APowerNode* SourceNode);
 
-	// Switch to turn on or off the graph
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Graph")
-	bool bShowGraph;
 
 
 	
