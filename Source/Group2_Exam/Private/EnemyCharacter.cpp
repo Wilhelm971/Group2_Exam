@@ -36,7 +36,8 @@ AEnemyCharacter::AEnemyCharacter()
 
     // Collision setup.
     GetCapsuleComponent()->SetCollisionObjectType(ECC_Pawn);
-    GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+    GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
@@ -128,6 +129,7 @@ void AEnemyCharacter::Tick(float DeltaTime)
 
     // Recalculate path periodically.
     TimeSincePathRecalc += DeltaTime;
+    PathRecalcInterval = 2.0f;
     if (TargetTower && TimeSincePathRecalc >= PathRecalcInterval)
     {
         CalculateGridPath();
@@ -147,7 +149,7 @@ void AEnemyCharacter::Tick(float DeltaTime)
         {
             const FVector Next = GetNextPathPoint();
             const FVector Dir = (Next - GetActorLocation()).GetSafeNormal();
-            GetCharacterMovement()->Velocity = Dir * MoveSpeed;
+            AddMovementInput(Dir, 5.0f);
         }
     }
 }
@@ -228,12 +230,7 @@ void AEnemyCharacter::CalculateGridPath()
     {
         UE_LOG(LogTemp, Warning, TEXT("❌ %s NO PATH (direct fallback)"), *GetName());
     }
-
-
-
-
     
-  
 }
 
 // Gets the next waypoint in the path.
@@ -242,13 +239,16 @@ FVector AEnemyCharacter::GetNextPathPoint()
     if (PathPoints.IsValidIndex(CurrentPathIndex))
     {
         const FVector Cur = PathPoints[CurrentPathIndex];
-        if (FVector::Dist(GetActorLocation(), Cur) < 60.f)
+        float Dist = FVector::Dist(GetActorLocation(), Cur);
+        
+        if (CurrentPathIndex >= PathPoints.Num())
         {
-            ++CurrentPathIndex;
+            AttackTarget();
+            return Cur;
         }
         return Cur;
     }
-
+    
     // Fallback to direct target.
     return TargetTower ? TargetTower->GetActorLocation() : GetActorLocation();
 }
@@ -263,7 +263,10 @@ void AEnemyCharacter::AttackTarget()
 
     const float Damage = 30.f * GetWorld()->DeltaTimeSeconds;
     TargetTower->TakeDamageCustom(Damage);
-    TargetTower = nullptr;
+    if (TargetTower->bIsDead)
+    {
+        TargetTower = nullptr;
+    }
 }
 
 // Applies damage to the enemy.
