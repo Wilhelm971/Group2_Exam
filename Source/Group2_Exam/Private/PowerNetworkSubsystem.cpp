@@ -21,7 +21,6 @@ void UPowerNetworkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     PowerGraph.Empty();
     AllNodes.Empty();
     bIsPropagating = false;
-    bShowGraph = false;
     bIsAllowedDeleteLines = false;
 }
 
@@ -106,12 +105,11 @@ void UPowerNetworkSubsystem::RebuildConnections()
             if (NodeB && FVector::Dist(LocA, NodeB->GetActorLocation()) <= Range)
             {
                 Neighbors.Add(NodeB);
-                // Draw persistent yellow line for connections (visible at all times).
-                // This lets you see the whole graph, and all the connections to each node.
-                if (bShowGraph)
-                {
-                    DrawDebugLine(GetWorld(), LocA, NodeB->GetActorLocation(), FColor::Yellow, true, -1.0f, 0, 1.5f);
-                }
+                /* Draw persistent yellow line for connections (visible at all times).
+                   This lets you see the whole graph, and all the connections to each node.
+                   Uncomment the line under to see the whole graph*/
+                
+                //DrawDebugLine(GetWorld(), LocA, NodeB->GetActorLocation(), FColor::Yellow, true, -1.0f, 0, 1.5f);
             }
         }
 
