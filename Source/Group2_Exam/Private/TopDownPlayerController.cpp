@@ -6,6 +6,7 @@
 #include "PowerCannon.h"
 #include "PowerNetworkSubsystem.h"
 #include "GameFramework/Pawn.h"
+#include "MyUserWidget.h"
 #include "GameFramework/SpringArmComponent.h"
 
 // =============================================================
@@ -44,6 +45,19 @@ void ATopDownPlayerController::BeginPlay()
     }
 
     ControlledPawn = GetPawn();
+
+    if (IsLocalController() && WidgetClass)
+    {
+        MyWidgetInstance = CreateWidget<UMyUserWidget>(this, WidgetClass);
+        if (MyWidgetInstance)
+        {
+            MyWidgetInstance->AddToViewport();
+
+            bShowMouseCursor = true;
+            SetInputMode(FInputModeUIOnly());
+        }
+    }
+
 }
 
 // =============================================================
@@ -130,7 +144,7 @@ void ATopDownPlayerController::HandleZoom(const FInputActionValue& Value)
 // BUILDING MODE
 // =============================================================
 // Toggles building mode on/off.
-void ATopDownPlayerController::ToggleBuildingMode(const FInputActionValue& Value)
+void ATopDownPlayerController::ToggleBuildingMode()
 {
     if (bBuildingModeActive)
     {
