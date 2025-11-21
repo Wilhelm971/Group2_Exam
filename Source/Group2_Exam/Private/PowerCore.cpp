@@ -68,6 +68,7 @@ void APowerCore::BeginPlay()
 {
 	Super::BeginPlay();
 
+	/*
 	GetWorld()->GetTimerManager().SetTimer(
 		TimerHandle_Pulse,
 		this,
@@ -75,12 +76,16 @@ void APowerCore::BeginPlay()
 		PulseInterval,
 		true
 	);
+	*/
 }
 
 // =============================================================
 // EMIT POWER PULSE
 // =============================================================
 // Triggers power distribution from this core.
+
+
+/*
 void APowerCore::EmitPowerPulse()
 {
 	if (UWorld* World = GetWorld())
@@ -92,3 +97,5 @@ void APowerCore::EmitPowerPulse()
 		}
 	}
 }
+
+*/

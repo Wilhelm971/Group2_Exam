@@ -44,7 +44,7 @@ public:
 	// POWER FUNCTIONS
 	// =============================================================
 	/** Emits a power pulse to the network. */
-	void EmitPowerPulse();
+	//void EmitPowerPulse();
 
     // =============================================================
     // MESH AND MATERIALS
@@ -70,5 +70,5 @@ private:
 	// PRIVATE DATA
 	// =============================================================
 	/** Timer handle for pulse interval. */
-	FTimerHandle TimerHandle_Pulse;
+	//FTimerHandle TimerHandle_Pulse;
 };
