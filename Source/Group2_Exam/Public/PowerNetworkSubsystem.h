@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "EnemyCharacter.h"
 #include "PowerNetworkSubsystem.generated.h"
 
 class APowerNode;  // Forward declaration
@@ -41,8 +42,8 @@ public:
 	/** Propagates power from the source node using BFS. */
 	void PropagatePower(APowerNode* SourceNode);
 
-
-
+	UPROPERTY()
+	AEnemyCharacter* EnemyCharacter;
 	
 
 private:

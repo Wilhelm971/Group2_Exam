@@ -92,7 +92,6 @@ void APowerNode::TakeDamageCustom(float DamageAmount)
     if (CurrentHealth <= 0.0f)
     {
         UE_LOG(LogTemp, Log, TEXT("%s DESTROYED!"), *GetName());
-        bIsDead = true;
         Destroy();
     }
 }

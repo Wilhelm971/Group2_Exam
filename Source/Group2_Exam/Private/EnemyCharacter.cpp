@@ -115,7 +115,6 @@ void AEnemyCharacter::Tick(float DeltaTime)
         DebugTimer = 0.f;
     }
     
-
     // Retry finding target periodically.
     TimeSinceLastSearch += DeltaTime;
     if (!TargetTower && TimeSinceLastSearch >= SearchInterval)
@@ -123,15 +122,17 @@ void AEnemyCharacter::Tick(float DeltaTime)
         FindClosestTarget();
         TimeSinceLastSearch = 0.f;
     }
-
+    
     // Recalculate path periodically.
     TimeSincePathRecalc += DeltaTime;
     PathRecalcInterval = 2.0f;
     if (TargetTower && TimeSincePathRecalc >= PathRecalcInterval)
     {
         CalculateGridPath();
+        bDoPathfinding = false;
         TimeSincePathRecalc = 0.f;
     }
+    
     
     // Move or attack if target exists.
     if (TargetTower && IsValid(TargetTower))
@@ -265,7 +266,7 @@ void AEnemyCharacter::AttackTarget()
 
     const float Damage = 30.f * GetWorld()->DeltaTimeSeconds;
     TargetTower->TakeDamageCustom(Damage);
-    if (TargetTower->bIsDead)
+    if (bIsTowerDestroyed == true)
     {
         TargetTower = nullptr;
     }

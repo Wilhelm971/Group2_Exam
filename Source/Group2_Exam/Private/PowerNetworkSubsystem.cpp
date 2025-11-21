@@ -2,6 +2,7 @@
 
 #include "PowerNetworkSubsystem.h"
 #include "PowerNode.h"
+#include "EnemyCharacter.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -61,7 +62,10 @@ void UPowerNetworkSubsystem::UnregisterNode(APowerNode* Node)
 // Reconstructs the power graph based on node ranges using sphere overlaps for optimization.
 void UPowerNetworkSubsystem::RebuildConnections()
 {
+    // Calculate pathfinding A* Star for Enemy
+    EnemyCharacter->bDoPathfinding = true;
 
+    
     // Allows it to Removes all debug lines
     bIsAllowedDeleteLines = true;
 
