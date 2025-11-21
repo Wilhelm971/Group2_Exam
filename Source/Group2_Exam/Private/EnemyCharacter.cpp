@@ -114,9 +114,6 @@ void AEnemyCharacter::Tick(float DeltaTime)
 
         DebugTimer = 0.f;
     }
-
-
-
     
 
     // Retry finding target periodically.
@@ -135,21 +132,22 @@ void AEnemyCharacter::Tick(float DeltaTime)
         CalculateGridPath();
         TimeSincePathRecalc = 0.f;
     }
-
+    
     // Move or attack if target exists.
     if (TargetTower && IsValid(TargetTower))
     {
-        const float Dist = FVector::Dist(GetActorLocation(), TargetTower->GetActorLocation());
+        FVector Next = GetNextPathPoint();
+        FVector Dir = (Next - GetActorLocation()).GetSafeNormal();
 
-        if (Dist <= AttackRange)
+        if (!Dir.IsNearlyZero())
+        {
+            AddMovementInput(Dir, 1.0f);
+        }
+
+        float DistToTarget = FVector::Dist(GetActorLocation(), TargetTower->GetActorLocation());
+        if (DistToTarget <= AttackRange)
         {
             AttackTarget();
-        }
-        else
-        {
-            const FVector Next = GetNextPathPoint();
-            const FVector Dir = (Next - GetActorLocation()).GetSafeNormal();
-            AddMovementInput(Dir, 5.0f);
         }
     }
 }
@@ -238,14 +236,18 @@ FVector AEnemyCharacter::GetNextPathPoint()
 {
     if (PathPoints.IsValidIndex(CurrentPathIndex))
     {
-        const FVector Cur = PathPoints[CurrentPathIndex];
+        FVector Cur = PathPoints[CurrentPathIndex];
         float Dist = FVector::Dist(GetActorLocation(), Cur);
-        
-        if (CurrentPathIndex >= PathPoints.Num())
+
+        if (Dist < 100.f)
         {
-            AttackTarget();
+            ++CurrentPathIndex;
+        }
+        else
+        {
             return Cur;
         }
+        
         return Cur;
     }
     
