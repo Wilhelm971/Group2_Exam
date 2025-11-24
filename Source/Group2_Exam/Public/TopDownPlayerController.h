@@ -52,6 +52,22 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
     bool bBuildingModeActive = false;
 
+
+    // =============================================================
+    // ECONOMY PROPERTIES (NEW)
+    // =============================================================
+    /** Current number of coins the player has. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Economy")
+    float CurrentCoins = 0.0f;
+
+    /** Cost to place a cannon. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Economy")
+    float CannonCost = 50.0f;
+
+    /** Coins earned per second. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Economy")
+    float CoinsPerSecond = 7.0f;
+
     // =============================================================
     // CAMERA PROPERTIES
     // =============================================================
@@ -134,4 +150,13 @@ private:
 
     /** Updates the preview cannon's position based on cursor. */
     void UpdatePreviewPosition();
+
+    // =============================================================
+    // PRIVATE FUNCTIONS (ECONOMY HELPERS - NEW)
+    // =============================================================
+    /** Timer-based function to earn coins over time. */
+    void EarnCoins();
+
+    /** Timer handle for coin earning. */
+    FTimerHandle CoinTimerHandle;
 };

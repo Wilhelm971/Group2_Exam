@@ -23,6 +23,8 @@ ATopDownPlayerController::ATopDownPlayerController()
     DefaultMouseCursor = EMouseCursor::Crosshairs;
     bEnableClickEvents = true;
     bEnableMouseOverEvents = true;
+
+    CurrentCoins = 100.0f;
 }
 
 // =============================================================
@@ -44,6 +46,9 @@ void ATopDownPlayerController::BeginPlay()
     }
 
     ControlledPawn = GetPawn();
+
+    // Start coin earning timer (every 1 second).
+    GetWorld()->GetTimerManager().SetTimer(CoinTimerHandle, this, &ATopDownPlayerController::EarnCoins, 1.0f, true);
 }
 
 // =============================================================
@@ -147,6 +152,17 @@ void ATopDownPlayerController::PlaceBuilding(const FInputActionValue& Value)
 {
     if (!bBuildingModeActive || !PreviewCannon || !PreviewCannon->bPlacementValid) return;
 
+
+    if (CurrentCoins < CannonCost)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Not enough coins to place cannon! Need %.0f, have %.0f"), CannonCost, CurrentCoins);
+        return;  // Optionally add UI feedback here.
+    }
+
+    // Deduct cost.
+
+    CurrentCoins -= CannonCost;
+    
     // Finalize placement.
     PreviewCannon->SetActorEnableCollision(true);
     PreviewCannon->SetPreviewMode(false);
@@ -168,7 +184,7 @@ void ATopDownPlayerController::PlaceBuilding(const FInputActionValue& Value)
     }
 
     
-    // TODO: Implement currency spending, SFX, VFX.
+    // TODO: Implement SFX, VFX.
 }
 
 // Cancels building mode.
@@ -240,4 +256,16 @@ void ATopDownPlayerController::UpdatePreviewPosition()
             PreviewCannon->UpdatePreviewVisuals();
         }
     }
+}
+
+
+// =============================================================
+// ECONOMY FUNCTIONS (NEW)
+// =============================================================
+// Earns coins every second.
+
+void ATopDownPlayerController::EarnCoins()
+{
+    CurrentCoins += CoinsPerSecond;
+    UE_LOG(LogTemp, Log, TEXT("Earned %.0f coins. Total: %.0f"), CoinsPerSecond, CurrentCoins);
 }
