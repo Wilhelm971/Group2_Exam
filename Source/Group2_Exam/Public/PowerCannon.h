@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PowerNode.h"
 #include "Components/StaticMeshComponent.h"
+#include "MyHealthBar.h"
 #include "PowerCannon.generated.h"
 
 class UStaticMesh;

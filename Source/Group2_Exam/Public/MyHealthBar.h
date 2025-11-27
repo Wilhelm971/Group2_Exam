@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -19,7 +17,7 @@ public:
 	void SetHealthPercentage(float Percentage);
 
 protected:
-	UPROPERTY(meta = (BindWidget), Category = "Health")
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget), Category = "Health")
 	TObjectPtr<UProgressBar> HealthProgressBar;
 
 };

@@ -2,7 +2,7 @@
 
 
 #include "MyHealthBar.h"
-/*
+
 void UMyHealthBar::SetHealthPercentage(float Percentage)
 {
 
@@ -11,4 +11,3 @@ void UMyHealthBar::SetHealthPercentage(float Percentage)
 		HealthProgressBar->SetPercent(Percentage);
 	}
 }
-*/

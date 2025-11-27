@@ -3,6 +3,7 @@
 #include "PowerCannon.h"
 #include "EnemyCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "MyHealthBar.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 
