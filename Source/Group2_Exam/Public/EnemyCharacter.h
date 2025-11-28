@@ -73,15 +73,21 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
     float PathRecalcInterval = 1.f;
 
-private:
-    // =============================================================
-    // PRIVATE HELPERS
-    // =============================================================
     /** Finds the closest power node as the new target. */
     void FindClosestTarget();
 
     /** Calculates A* path to the target using GridManager. */
     void CalculateGridPath();
+
+    UPROPERTY()
+    bool bDoPathfinding = true;
+
+    UPROPERTY(VisibleAnywhere)
+    bool bIsTowerDestroyed = false;
+private:
+    // =============================================================
+    // PRIVATE HELPERS
+    // =============================================================
 
     /** Gets the next waypoint in the current path. */
     FVector GetNextPathPoint();

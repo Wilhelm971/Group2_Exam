@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "EnemyCharacter.h"
 #include "PowerNode.generated.h"
 
 class APowerNode;  // Forward declaration for ReceivePower parameter
@@ -62,9 +63,9 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
     float CurrentHealth;
 
-    /** For the enemy code to see if the actor has been destroyed */
-    UPROPERTY()
-    bool bIsDead = false;
+    // Enemy Character reference
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy")
+    AEnemyCharacter* EnemyCharacter;
 
     // =============================================================
     // DAMAGE FUNCTIONS
