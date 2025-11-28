@@ -4,10 +4,13 @@
 
 #include "NodeActor.h"
 #include "Components/TextRenderComponent.h"
-#include "PowerNode.h"
+#include "PowerCannon.h"
+#include "EnemyCharacter.h"
 #include "Components/BoxComponent.h"
+#include "Interfaces/IPluginManager.h"
 
-APowerNode* PowerNode;
+APowerCannon* PowerCannon;
+AEnemyCharacter* EnemyCharacter;
 // =============================================================
 // CLASS DESCRIPTION
 // =============================================================
@@ -71,7 +74,7 @@ void ANodeActor::OnCollisionOverlap(
 	const FHitResult& SweepResult
 	)
 {
-	if ((OtherActor != this) && OtherComp) 
+	if (OtherActor == PowerCannon && (OtherActor != this) && OtherComp) 
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
 		SetState(ENodeState::Target);
@@ -81,13 +84,11 @@ void ANodeActor::OnCollisionOverlap(
 void ANodeActor::OnCollisionEnd(UPrimitiveComponent* ColliderComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex)
 {
-	SetState(ENodeState::Default);
-	/*
-	if (OtherActor == PowerNode && (OtherActor != this) && OtherComp) 
+	if (OtherActor == PowerCannon && (OtherActor != this) && OtherComp) 
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap End"));
+		SetState(ENodeState::Default);
 	}
-	*/
 }
 
 
