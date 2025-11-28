@@ -65,7 +65,7 @@ public:
 
     // Enemy Character reference
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy")
-    AEnemyCharacter* EnemyCharacter;
+    bool bIsDestroyed = false;
 
     // =============================================================
     // DAMAGE FUNCTIONS
