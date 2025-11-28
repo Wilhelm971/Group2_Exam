@@ -1,5 +1,3 @@
-// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
-
 #include "EnemyPawn.h"
 #include "PowerNode.h"  // Assuming PowerNode.h exists
 #include "GridManager.h"

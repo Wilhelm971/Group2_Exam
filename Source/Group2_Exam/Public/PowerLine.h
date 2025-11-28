@@ -14,7 +14,7 @@ class GROUP2_EXAM_API APowerLine : public AActor
 
 public:
 	APowerLine();
-
+/*
 protected:
 	virtual void PostInitializeComponents() override;
 
@@ -42,4 +42,5 @@ private:
 
 	UFUNCTION()
 	void SelfDestroy();
+	*/
 };

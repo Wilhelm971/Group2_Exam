@@ -1,5 +1,3 @@
-// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
-
 
 #include "EnemySpawner.h"
 #include "EnemyPawn.h"
@@ -83,5 +81,3 @@ void AEnemySpawner::SpawnEnemy()
                *NewEnemy->GetName(), FinalLoc.X, FinalLoc.Y, FinalLoc.Z);
     }
 }
-
-

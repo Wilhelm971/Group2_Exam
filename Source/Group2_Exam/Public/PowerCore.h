@@ -29,7 +29,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void PostInitializeComponents() override;
+    virtual void PostInitializeComponents() override;
 
 	// =============================================================
 	// POWER PROPERTIES
@@ -39,21 +39,34 @@ public:
 	float PulseInterval = 5.0f;
 
 	// =============================================================
-	// MESH AND MATERIALS
+	// POWER FUNCTIONS
 	// =============================================================
-	/** Static mesh asset for the core. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	UStaticMesh* CoreStaticMeshAsset;
+	/** Emits a power pulse to the network. */
+	//void EmitPowerPulse();
 
-	/** Material for the core. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
-	UMaterialInterface* CoreMaterial;
+    // =============================================================
+    // MESH AND MATERIALS
+    // =============================================================
+    /** Static mesh asset for the core. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+    UStaticMesh* CoreStaticMeshAsset;
+
+    /** Material for the core. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
+    UMaterialInterface* CoreMaterial;
 
 protected:
+    // =============================================================
+    // COMPONENTS
+    // =============================================================
+    /** Mesh component for the core. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UStaticMeshComponent* CoreMesh;
+
+private:
 	// =============================================================
-	// COMPONENTS
+	// PRIVATE DATA
 	// =============================================================
-	/** Mesh component for the core. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* CoreMesh;
+	/** Timer handle for pulse interval. */
+	//FTimerHandle TimerHandle_Pulse;
 };

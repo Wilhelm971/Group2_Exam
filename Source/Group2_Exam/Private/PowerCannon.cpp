@@ -1,5 +1,3 @@
-// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
-
 #include "PowerCannon.h"
 #include "EnemyPawn.h"  // Updated to EnemyPawn from EnemyCharacter
 #include "Kismet/GameplayStatics.h"

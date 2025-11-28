@@ -72,12 +72,15 @@ void AGridManager::SpawnGrid()
 // =============================================================
 // CLEAR GRID
 // =============================================================
-// Destroys all nodes and clears the array.
+// Destroys all grid nodes and clears the array.
 void AGridManager::ClearGrid()
 {
     for (ANodeActor* Node : Grid)
     {
-        if (Node) Node->Destroy();
+        if (Node && Node->IsValidLowLevel())
+        {
+            Node->Destroy();
+        }
     }
     Grid.Empty();
 }
@@ -85,7 +88,7 @@ void AGridManager::ClearGrid()
 // =============================================================
 // MARK OBSTACLES
 // =============================================================
-// Marks nodes as non-walkable if overlapping with blocking actors.
+// Checks for overlaps with static actors to mark non-walkable nodes.
 void AGridManager::MarkObstacles()
 {
     if (Grid.Num() == 0) return;
@@ -160,11 +163,10 @@ FVector AGridManager::GridToWorldCenter(const FIntPoint& GridIndex) const
 // =============================================================
 // PATHFINDING
 // =============================================================
-// A* pathfinding between grid indices.
+// Finds A* path between grid indices.
 TArray<FIntPoint> AGridManager::FindPath(const FIntPoint& StartIdx, const FIntPoint& EndIdx)
 {
     TArray<FIntPoint> EmptyPath;
-
     if (!IsValidIndex(StartIdx) || !IsValidIndex(EndIdx)) return EmptyPath;
 
     ANodeActor* StartNode = Grid[StartIdx.X + StartIdx.Y * GridSizeX];

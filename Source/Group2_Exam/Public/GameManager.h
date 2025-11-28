@@ -36,7 +36,7 @@ class GROUP2_EXAM_API AGameManager : public AActor
 
 public:
 	AGameManager();
-
+/*
 protected:
 	virtual void BeginPlay() override;
 
@@ -65,4 +65,5 @@ private:
 	bool bWaveActive = false;
 
 	void SpawnEnemy();
+	*/
 };
