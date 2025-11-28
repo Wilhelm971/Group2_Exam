@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PowerNode.h"
 #include "GameFramework/Character.h"
 #include "EnemyCharacter.generated.h"
 
@@ -83,6 +82,8 @@ public:
     UPROPERTY()
     bool bDoPathfinding = true;
 
+    UPROPERTY(VisibleAnywhere)
+    bool bIsTowerDestroyed = false;
 private:
     // =============================================================
     // PRIVATE HELPERS

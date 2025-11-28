@@ -71,7 +71,7 @@ void ANodeActor::OnCollisionOverlap(
 	const FHitResult& SweepResult
 	)
 {
-	if ((OtherActor != this) && OtherComp) 
+	if (OtherActor == PowerNode && (OtherActor != this) && OtherComp) 
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
 		SetState(ENodeState::Target);
@@ -81,13 +81,11 @@ void ANodeActor::OnCollisionOverlap(
 void ANodeActor::OnCollisionEnd(UPrimitiveComponent* ColliderComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex)
 {
-	SetState(ENodeState::Default);
-	/*
 	if (OtherActor == PowerNode && (OtherActor != this) && OtherComp) 
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap End"));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
+		SetState(ENodeState::Default);
 	}
-	*/
 }
 
 

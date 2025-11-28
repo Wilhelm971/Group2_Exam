@@ -63,7 +63,7 @@ void UPowerNetworkSubsystem::UnregisterNode(APowerNode* Node)
 void UPowerNetworkSubsystem::RebuildConnections()
 {
     // Calculate pathfinding A* Star for Enemy
-    //EnemyCharacter->bDoPathfinding = true;
+    EnemyCharacter->bDoPathfinding = true;
 
     
     // Allows it to Removes all debug lines
