@@ -11,3 +11,4 @@ void UMyHealthBar::SetHealthPercentage(float Percentage)
 		HealthProgressBar->SetPercent(Percentage);
 	}
 }
+//
