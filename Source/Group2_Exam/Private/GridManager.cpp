@@ -1,5 +1,3 @@
-// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
-
 #include "GridManager.h"
 #include "NodeActor.h"
 #include "Engine/World.h"
@@ -74,15 +72,12 @@ void AGridManager::SpawnGrid()
 // =============================================================
 // CLEAR GRID
 // =============================================================
-// Destroys all grid nodes and clears the array.
+// Destroys all nodes and clears the array.
 void AGridManager::ClearGrid()
 {
     for (ANodeActor* Node : Grid)
     {
-        if (Node && Node->IsValidLowLevel())
-        {
-            Node->Destroy();
-        }
+        if (Node) Node->Destroy();
     }
     Grid.Empty();
 }
@@ -90,7 +85,7 @@ void AGridManager::ClearGrid()
 // =============================================================
 // MARK OBSTACLES
 // =============================================================
-// Checks for overlaps with static actors to mark non-walkable nodes.
+// Marks nodes as non-walkable if overlapping with blocking actors.
 void AGridManager::MarkObstacles()
 {
     if (Grid.Num() == 0) return;
@@ -165,10 +160,11 @@ FVector AGridManager::GridToWorldCenter(const FIntPoint& GridIndex) const
 // =============================================================
 // PATHFINDING
 // =============================================================
-// Finds A* path between grid indices.
+// A* pathfinding between grid indices.
 TArray<FIntPoint> AGridManager::FindPath(const FIntPoint& StartIdx, const FIntPoint& EndIdx)
 {
     TArray<FIntPoint> EmptyPath;
+
     if (!IsValidIndex(StartIdx) || !IsValidIndex(EndIdx)) return EmptyPath;
 
     ANodeActor* StartNode = Grid[StartIdx.X + StartIdx.Y * GridSizeX];

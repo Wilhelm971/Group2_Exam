@@ -1,10 +1,9 @@
-// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
-
 #include "DormantPowerCores.h"
 #include "PowerCore.h"
 #include "PowerNetworkSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "TDGameMode.h"  // For Victory()
 
 // =============================================================
 // CLASS DESCRIPTION
@@ -34,10 +33,6 @@ ADormantPowerCores::ADormantPowerCores()
     {
         DormantStaticMeshAsset = MeshAsset.Object;
     }
-
-    // Load a default material (optional; set in BP or here, e.g., a dim/grey version).
-    // static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialAsset(TEXT("/Path/To/DormantMaterial.DormantMaterial"));
-    // if (MaterialAsset.Succeeded()) { DormantMaterial = MaterialAsset.Object; }
 }
 
 // =============================================================
@@ -122,6 +117,9 @@ void ADormantPowerCores::CheckWinCondition()
     if (ActiveCores.Num() >= 5)
     {
         UE_LOG(LogTemp, Warning, TEXT("WIN CONDITION MET: 5 active PowerCores!"));
-        // TODO: Notify GameMode or handle win (e.g., end game).
+        if (ATDGameMode* GameMode = Cast<ATDGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+        {
+            GameMode->Victory();
+        }
     }
 }

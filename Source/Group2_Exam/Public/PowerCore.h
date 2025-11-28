@@ -1,5 +1,3 @@
-// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -31,7 +29,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-    virtual void PostInitializeComponents() override;
+	virtual void PostInitializeComponents() override;
 
 	// =============================================================
 	// POWER PROPERTIES
@@ -41,34 +39,21 @@ public:
 	float PulseInterval = 5.0f;
 
 	// =============================================================
-	// POWER FUNCTIONS
+	// MESH AND MATERIALS
 	// =============================================================
-	/** Emits a power pulse to the network. */
-	//void EmitPowerPulse();
+	/** Static mesh asset for the core. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
+	UStaticMesh* CoreStaticMeshAsset;
 
-    // =============================================================
-    // MESH AND MATERIALS
-    // =============================================================
-    /** Static mesh asset for the core. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-    UStaticMesh* CoreStaticMeshAsset;
-
-    /** Material for the core. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
-    UMaterialInterface* CoreMaterial;
+	/** Material for the core. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
+	UMaterialInterface* CoreMaterial;
 
 protected:
-    // =============================================================
-    // COMPONENTS
-    // =============================================================
-    /** Mesh component for the core. */
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-    UStaticMeshComponent* CoreMesh;
-
-private:
 	// =============================================================
-	// PRIVATE DATA
+	// COMPONENTS
 	// =============================================================
-	/** Timer handle for pulse interval. */
-	//FTimerHandle TimerHandle_Pulse;
+	/** Mesh component for the core. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* CoreMesh;
 };

@@ -1,5 +1,3 @@
-// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
-
 #include "TopDownCameraPawn.h"
 
 // =============================================================

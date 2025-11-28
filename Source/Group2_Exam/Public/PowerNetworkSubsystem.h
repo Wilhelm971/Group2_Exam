@@ -1,6 +1,3 @@
-// Copyright © 2025 Wilhelm Velde Koren. All Rights Reserved.
-
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,6 +6,7 @@
 
 class APowerNode;  // Forward declaration
 class APowerCore;   // Forward declaration
+class APowerLine;
 
 /**
  * UPowerNetworkSubsystem
@@ -42,7 +40,11 @@ public:
 	/** Distributes power from a specific core to its connected buildings. */
 	void DistributePowerFromCore(APowerCore* SourceCore, float Amount);
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power")
+    float PulseAmount = 1000.0f;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visualization")
+    TSubclassOf<APowerLine> PowerLineClass;
 
 private:
 	// =============================================================
@@ -53,12 +55,12 @@ private:
 
 	void PulseAllCores();
 
-	
 	void StartPowerVisualization();
 
 	void ProcessVisualizationStep();
 
-	
+    void UpdatePowerStates();
+
 	// =============================================================
 	// PRIVATE DATA
 	// =============================================================
@@ -85,8 +87,4 @@ private:
 	float PropagationDelay = 0.2f;
 
 	bool bIsPropagating = false;
-
-
-
-
 };
