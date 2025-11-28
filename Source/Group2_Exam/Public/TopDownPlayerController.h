@@ -67,6 +67,32 @@ public:
     float CoinsPerSecond = 7.0f;
 
     // =============================================================
+    // UI
+    // =============================================================
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    TSubclassOf<UUserWidget> HUDWidgetClass;
+
+    UPROPERTY()
+    UUserWidget* HUDWidget;
+
+    //UPROPERTY()
+    //AGameManager* GameManagerRef;
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    float GetCurrentCoins() const { return CurrentCoins; }
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    int32 GetActiveCoreCount() const;
+
+    UFUNCTION(BlueprintCallable, Category = "HUD")
+    float GetCoreHealthPercent() const;
+
+    //UFUNCTION(BlueprintCallable, Category = "HUD")
+    //int32 GetCurrentWaveIndex() const { return GameManagerRef ? GameManagerRef->CurrentWaveIndex : 0; }
+
+    
+    // =============================================================
     // CAMERA PROPERTIES
     // =============================================================
     /** Speed of camera panning movement. */

@@ -2,9 +2,12 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "PowerCannon.h"
+#include "PowerCore.h"
 #include "PowerNetworkSubsystem.h"
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // =============================================================
 // CLASS DESCRIPTION
@@ -47,7 +50,46 @@ void ATopDownPlayerController::BeginPlay()
 
     // Start coin earning timer (every 1 second).
     GetWorld()->GetTimerManager().SetTimer(CoinTimerHandle, this, &ATopDownPlayerController::EarnCoins, 1.0f, true);
+
+
+    // Create HUD
+    if (HUDWidgetClass)
+    {
+        HUDWidget = CreateWidget<UUserWidget>(this, HUDWidgetClass);
+        if (HUDWidget)
+        {
+            HUDWidget->AddToViewport();
+        }
+    }
+
+
 }
+
+
+int32 ATopDownPlayerController::GetActiveCoreCount() const
+{
+    TArray<AActor*> Cores;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerCore::StaticClass(), Cores);
+    return Cores.Num();
+}
+
+float ATopDownPlayerController::GetCoreHealthPercent() const
+{
+    TArray<AActor*> Cores;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerCore::StaticClass(), Cores);
+    float TotalHealth = 0.0f;
+    float TotalMaxHealth = 0.0f;
+    for (AActor* Actor : Cores)
+    {
+        if (APowerCore* Core = Cast<APowerCore>(Actor))
+        {
+            TotalHealth += Core->CurrentHealth;
+            TotalMaxHealth += Core->MaxHealth;
+        }
+    }
+    return TotalMaxHealth > 0.0f ? TotalHealth / TotalMaxHealth : 0.0f;
+}
+
 
 // =============================================================
 // SETUP INPUT COMPONENT

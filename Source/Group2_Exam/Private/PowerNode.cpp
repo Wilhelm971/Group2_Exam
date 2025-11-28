@@ -124,13 +124,15 @@ void APowerNode::TakeDamageCustom(float DamageAmount)
 
                 // Check lose condition.
                 TArray<AActor*> ActiveCores;
-                UGameplayStatics::GetAllActorsOfClass(World, ADormantPowerCores::StaticClass(), ActiveCores);
+                UGameplayStatics::GetAllActorsOfClass(World, APowerCore::StaticClass(), ActiveCores);
+                
                 if (ActiveCores.Num() == 0)
                 {
                     UE_LOG(LogTemp, Warning, TEXT("LOSE CONDITION MET: 5 dormant PowerCores!"));
                     // TODO: Notify GameMode or handle loss.
                     if (ATDGameMode* GameMode = Cast<ATDGameMode>(UGameplayStatics::GetGameMode(World)))
                     {
+                        UE_LOG(LogTemp, Warning, TEXT("Test 3"));
                         GameMode->Defeat();
                     }
                 }
