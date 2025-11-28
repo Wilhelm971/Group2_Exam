@@ -19,6 +19,7 @@
 // CONSTRUCTOR
 // =============================================================
 // Sets up movement and collision.
+
 AEnemyCharacter::AEnemyCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -129,7 +130,6 @@ void AEnemyCharacter::Tick(float DeltaTime)
     if (TargetTower && TimeSincePathRecalc >= PathRecalcInterval)
     {
         CalculateGridPath();
-        bDoPathfinding = false;
         TimeSincePathRecalc = 0.f;
     }
     
@@ -266,9 +266,10 @@ void AEnemyCharacter::AttackTarget()
 
     const float Damage = 30.f * GetWorld()->DeltaTimeSeconds;
     TargetTower->TakeDamageCustom(Damage);
-    if (bIsTowerDestroyed == true)
+    if (TargetTower->bIsDestroyed == true)
     {
         TargetTower = nullptr;
+        
     }
 }
 
