@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PowerNode.h"
 #include "GameFramework/Character.h"
 #include "EnemyCharacter.generated.h"
 
@@ -71,15 +72,19 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
     float PathRecalcInterval = 1.f;
 
-private:
-    // =============================================================
-    // PRIVATE HELPERS
-    // =============================================================
     /** Finds the closest power node as the new target. */
     void FindClosestTarget();
 
     /** Calculates A* path to the target using GridManager. */
     void CalculateGridPath();
+
+    UPROPERTY()
+    bool bDoPathfinding = true;
+
+private:
+    // =============================================================
+    // PRIVATE HELPERS
+    // =============================================================
 
     /** Gets the next waypoint in the current path. */
     FVector GetNextPathPoint();

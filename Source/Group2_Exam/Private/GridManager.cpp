@@ -172,6 +172,9 @@ TArray<FIntPoint> AGridManager::FindPath(const FIntPoint& StartIdx, const FIntPo
     ANodeActor* StartNode = Grid[StartIdx.X + StartIdx.Y * GridSizeX];
     ANodeActor* EndNode = Grid[EndIdx.X + EndIdx.Y * GridSizeX];
 
+    StartNode->SetState(ENodeState::Start);
+    EndNode->SetState(ENodeState::Target);
+    
     if (!StartNode || !EndNode || !StartNode->bIsWalkable || !EndNode->bIsWalkable)
         return EmptyPath;
 

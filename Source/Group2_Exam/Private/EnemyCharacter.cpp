@@ -17,6 +17,7 @@
 // CONSTRUCTOR
 // =============================================================
 // Sets up movement and collision.
+
 AEnemyCharacter::AEnemyCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -34,7 +35,8 @@ AEnemyCharacter::AEnemyCharacter()
 
     // Collision setup.
     GetCapsuleComponent()->SetCollisionObjectType(ECC_Pawn);
-    GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+    GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
@@ -111,41 +113,39 @@ void AEnemyCharacter::Tick(float DeltaTime)
 
         DebugTimer = 0.f;
     }
-
-
-
     
-
     // Retry finding target periodically.
     TimeSinceLastSearch += DeltaTime;
-    if (!TargetTower && TimeSinceLastSearch >= SearchInterval)
+    if (TimeSinceLastSearch >= SearchInterval)
     {
         FindClosestTarget();
         TimeSinceLastSearch = 0.f;
     }
-
+    
     // Recalculate path periodically.
     TimeSincePathRecalc += DeltaTime;
+    PathRecalcInterval = 2.0f;
     if (TargetTower && TimeSincePathRecalc >= PathRecalcInterval)
     {
         CalculateGridPath();
         TimeSincePathRecalc = 0.f;
     }
-
+    
     // Move or attack if target exists.
     if (TargetTower && IsValid(TargetTower))
     {
-        const float Dist = FVector::Dist(GetActorLocation(), TargetTower->GetActorLocation());
+        FVector Next = GetNextPathPoint();
+        FVector Dir = (Next - GetActorLocation()).GetSafeNormal();
 
-        if (Dist <= AttackRange)
+        if (!Dir.IsNearlyZero())
+        {
+            AddMovementInput(Dir, 1.0f);
+        }
+
+        float DistToTarget = FVector::Dist(GetActorLocation(), TargetTower->GetActorLocation());
+        if (DistToTarget <= AttackRange)
         {
             AttackTarget();
-        }
-        else
-        {
-            const FVector Next = GetNextPathPoint();
-            const FVector Dir = (Next - GetActorLocation()).GetSafeNormal();
-            GetCharacterMovement()->Velocity = Dir * MoveSpeed;
         }
     }
 }
@@ -226,12 +226,7 @@ void AEnemyCharacter::CalculateGridPath()
     {
         UE_LOG(LogTemp, Warning, TEXT("❌ %s NO PATH (direct fallback)"), *GetName());
     }
-
-
-
-
     
-  
 }
 
 // Gets the next waypoint in the path.
@@ -239,14 +234,21 @@ FVector AEnemyCharacter::GetNextPathPoint()
 {
     if (PathPoints.IsValidIndex(CurrentPathIndex))
     {
-        const FVector Cur = PathPoints[CurrentPathIndex];
-        if (FVector::Dist(GetActorLocation(), Cur) < 60.f)
+        FVector Cur = PathPoints[CurrentPathIndex];
+        float Dist = FVector::Dist(GetActorLocation(), Cur);
+
+        if (Dist < 100.f)
         {
             ++CurrentPathIndex;
         }
+        else
+        {
+            return Cur;
+        }
+        
         return Cur;
     }
-
+    
     // Fallback to direct target.
     return TargetTower ? TargetTower->GetActorLocation() : GetActorLocation();
 }
@@ -261,7 +263,10 @@ void AEnemyCharacter::AttackTarget()
 
     const float Damage = 30.f * GetWorld()->DeltaTimeSeconds;
     TargetTower->TakeDamageCustom(Damage);
-    TargetTower = nullptr;
+    if (TargetTower->bIsDestroyed == true)
+    {
+        TargetTower = nullptr;
+    }
 }
 
 // Applies damage to the enemy.

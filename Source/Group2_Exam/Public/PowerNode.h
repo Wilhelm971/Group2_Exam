@@ -67,10 +67,15 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
     float CurrentHealth;
 
+    // Enemy Character reference
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
+    bool bIsDestroyed = false;
+
     // =============================================================
     // DAMAGE FUNCTIONS
     // =============================================================
     /** Applies custom damage to the node. */
     UFUNCTION(BlueprintCallable, Category = "Damage")
     virtual void TakeDamageCustom(float DamageAmount);
+    
 };
