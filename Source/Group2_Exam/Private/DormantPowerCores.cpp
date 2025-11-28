@@ -1,6 +1,7 @@
 #include "DormantPowerCores.h"
 #include "PowerCore.h"
 #include "PowerNetworkSubsystem.h"
+#include "TDGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 
@@ -117,9 +118,13 @@ void ADormantPowerCores::CheckWinCondition()
     TArray<AActor*> ActiveCores;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerCore::StaticClass(), ActiveCores);
 
-    if (ActiveCores.Num() >= 5)
+    if (ActiveCores.Num() == 5)
     {
         UE_LOG(LogTemp, Warning, TEXT("WIN CONDITION MET: 5 active PowerCores!"));
-        // TODO: Notify GameMode or handle win (e.g., end game).
+
+        if (ATDGameMode* GameMode = Cast<ATDGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+        {
+            GameMode->Victory();
+        }
     }
 }

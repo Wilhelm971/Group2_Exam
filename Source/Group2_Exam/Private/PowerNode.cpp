@@ -2,6 +2,7 @@
 #include "PowerNetworkSubsystem.h"
 #include "DormantPowerCores.h"
 #include "PowerCore.h"
+#include "TDGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
 // =============================================================
@@ -122,12 +123,16 @@ void APowerNode::TakeDamageCustom(float DamageAmount)
                 }
 
                 // Check lose condition.
-                TArray<AActor*> Dormants;
-                UGameplayStatics::GetAllActorsOfClass(World, ADormantPowerCores::StaticClass(), Dormants);
-                if (Dormants.Num() >= 5)
+                TArray<AActor*> ActiveCores;
+                UGameplayStatics::GetAllActorsOfClass(World, ADormantPowerCores::StaticClass(), ActiveCores);
+                if (ActiveCores.Num() == 0)
                 {
                     UE_LOG(LogTemp, Warning, TEXT("LOSE CONDITION MET: 5 dormant PowerCores!"));
                     // TODO: Notify GameMode or handle loss.
+                    if (ATDGameMode* GameMode = Cast<ATDGameMode>(UGameplayStatics::GetGameMode(World)))
+                    {
+                        GameMode->Defeat();
+                    }
                 }
             }
         }

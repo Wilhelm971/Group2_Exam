@@ -46,6 +46,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float MoveSpeed = 300.f;
 
+    // Bounty for killing enemies
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    float Bounty = 20.0f;
+
     // =============================================================
     // DAMAGE FUNCTIONS
     // =============================================================

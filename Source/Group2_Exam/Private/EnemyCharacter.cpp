@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GridManager.h"
+#include "TopDownPlayerController.h"
 
 // =============================================================
 // CLASS DESCRIPTION
@@ -277,6 +278,13 @@ void AEnemyCharacter::TakeDamageCustom(float DamageAmount)
     CurrentHealth -= DamageAmount;
     if (CurrentHealth <= 0.f)
     {
+        // Reward coins
+        if (ATopDownPlayerController* PC = Cast<ATopDownPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
+        {
+            PC->CurrentCoins += Bounty;
+            UE_LOG(LogTemp, Log, TEXT("Player earned %.0f coins from %s"), Bounty, *GetName());
+        }
+        
         UE_LOG(LogTemp, Log, TEXT("%s DIED"), *GetName());
         Destroy();
     }
