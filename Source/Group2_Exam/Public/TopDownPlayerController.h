@@ -75,12 +75,7 @@ public:
 
     UPROPERTY()
     UUserWidget* HUDWidget;
-
-    //UPROPERTY()
-    //AGameManager* GameManagerRef;
-
-    UFUNCTION(BlueprintCallable, Category = "HUD")
-    float GetCurrentCoins() const { return CurrentCoins; }
+    
 
     UFUNCTION(BlueprintCallable, Category = "HUD")
     int32 GetActiveCoreCount() const;
@@ -88,8 +83,6 @@ public:
     UFUNCTION(BlueprintCallable, Category = "HUD")
     float GetCoreHealthPercent() const;
 
-    //UFUNCTION(BlueprintCallable, Category = "HUD")
-    //int32 GetCurrentWaveIndex() const { return GameManagerRef ? GameManagerRef->CurrentWaveIndex : 0; }
 
     
     // =============================================================

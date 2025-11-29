@@ -5,6 +5,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "PowerNetworkSubsystem.generated.h"
 
+class APowerLine;
 class APowerNode;  // Forward declaration
 class APowerCore;   // Forward declaration
 
@@ -14,7 +15,7 @@ class APowerCore;   // Forward declaration
  * World subsystem for managing the power network graph.
  * Handles node registration, connections, and power propagation.
  */
-UCLASS()
+UCLASS(Blueprintable)
 class GROUP2_EXAM_API UPowerNetworkSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
@@ -39,6 +40,9 @@ public:
 
 	/** Distributes power from a specific core to its connected buildings. */
 	void DistributePowerFromCore(APowerCore* SourceCore, float Amount);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visualization")
+	TSubclassOf<APowerLine> PowerLineClass;
 
 
 

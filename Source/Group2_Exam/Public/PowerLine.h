@@ -2,7 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Components/StaticMeshComponent.h"
+#include "Components/SplineComponent.h"
+#include "Components/SplineMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Engine/StaticMesh.h"
 #include "PowerLine.generated.h"
@@ -14,16 +15,16 @@ class GROUP2_EXAM_API APowerLine : public AActor
 
 public:
 	APowerLine();
-/*
+
 protected:
 	virtual void PostInitializeComponents() override;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* LineMesh;
+	USplineComponent* SplineComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
-	UStaticMesh* CylinderMeshAsset;
+	UStaticMesh* SegmentMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
 	UMaterialInterface* BaseEmissiveMaterial;
@@ -38,9 +39,11 @@ private:
 	UPROPERTY()
 	UMaterialInstanceDynamic* DynamicMaterial;
 
+	UPROPERTY()
+	USplineMeshComponent* SplineMeshComp;
+
 	FTimerHandle DestroyTimer;
 
 	UFUNCTION()
 	void SelfDestroy();
-	*/
 };

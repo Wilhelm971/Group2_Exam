@@ -3,6 +3,7 @@
 #include "PowerCore.h"
 #include "DormantPowerCores.h"
 #include "DrawDebugHelpers.h"
+#include "PowerLine.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"   // <-- added for GetAllActorsOfClass
 #include "TimerManager.h"
@@ -23,6 +24,26 @@ void UPowerNetworkSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     PowerGraph.Empty();
     AllNodes.Empty();
 
+
+    // Load BP subclass CDO and copy exposed properties (hack to "use" BP without direct instantiation)
+    TSubclassOf<UPowerNetworkSubsystem> BPSubsystemClass = LoadClass<UPowerNetworkSubsystem>(nullptr, TEXT("/Script/Engine.Blueprint'/Game/Blueprints/Buildings/BP_PowerNetworkSubsystem.BP_PowerNetworkSubsystem_C'"), nullptr, LOAD_None, nullptr);
+    if (BPSubsystemClass)
+    {
+        UPowerNetworkSubsystem* BP_CDO = Cast<UPowerNetworkSubsystem>(BPSubsystemClass->GetDefaultObject());
+        if (BP_CDO)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Copied properties from BP_PowerNetworkSubsystem CDO"));
+            this->PowerLineClass = BP_CDO->PowerLineClass;
+            // Add copies for any other UPROPERTY() you expose and set in BP
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to load BP_PowerNetworkSubsystem! Check path."));
+    }
+
+
+    
     // Set up global pulse timer (assuming PulseInterval = 5.0f, can make UProperty if needed)
 
 
@@ -288,10 +309,23 @@ void UPowerNetworkSubsystem::ProcessVisualizationStep()
     APowerNode* From = Step.Key;
     APowerNode* Current = Step.Value;
 
+    UE_LOG(LogTemp, Log, TEXT("Test 0"));
+
     // Visualize the power flow if from a previous node
-    if (From)
+    if (From && PowerLineClass)
     {
-        DrawDebugLine(GetWorld(), From->GetActorLocation(), Current->GetActorLocation(), FColor::Cyan, true, -1.0f, 0, 8.0f);
+        
+        UE_LOG(LogTemp, Log, TEXT("Test 1"));
+        FVector FromLoc = From->GetActorLocation();
+        FVector CurrentLoc = Current->GetActorLocation();
+        APowerLine* Line = GetWorld()->SpawnActor<APowerLine>(PowerLineClass, FVector::ZeroVector, FRotator::ZeroRotator);
+        if (Line)
+        {
+            UE_LOG(LogTemp, Log, TEXT("Test 2"));
+            Line->SetLine(FromLoc, CurrentLoc, FColor::Blue, 2.0f);  // Lifetime for fade
+        }
+        
+        //DrawDebugLine(GetWorld(), From->GetActorLocation(), Current->GetActorLocation(), FColor::Cyan, true, -1.0f, 0, 8.0f);
     }
 
     // Enqueue neighbors

@@ -1,8 +1,8 @@
 #include "PowerCannon.h"
-#include "EnemyPawn.h"  // Updated to EnemyPawn from EnemyCharacter
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
+#include "EnemyCharacter.h"
 
 // =============================================================
 // CLASS DESCRIPTION
@@ -151,7 +151,9 @@ void APowerCannon::TryShoot()
 
     // Find all enemies.
     TArray<AActor*> Enemies;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyPawn::StaticClass(), Enemies);
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), Enemies);
+
+    UE_LOG(LogTemp, Log, TEXT("Enemies Found"));
 
     AActor* ClosestEnemy = nullptr;
     float ClosestDist = FLT_MAX;
@@ -181,7 +183,7 @@ void APowerCannon::FireAtEnemy(AActor* Target)
     if (!Target) return;
 
     // Apply damage if valid enemy.
-    if (AEnemyPawn* Enemy = Cast<AEnemyPawn>(Target))
+    if (AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Target))
     {
         Enemy->TakeDamageFromCannon(Damage);
     }

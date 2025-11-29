@@ -1,67 +1,72 @@
 #include "PowerLine.h"
-#include "Components/StaticMeshComponent.h"
+#include "Components/SplineComponent.h"
+#include "Components/SplineMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "TimerManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 APowerLine::APowerLine()
 {
-	PrimaryActorTick.bCanEverTick = false;
-/*
-	LineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LineMesh"));
-	RootComponent = LineMesh;
-	LineMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	*/
+    PrimaryActorTick.bCanEverTick = false;
+
+    SplineComp = CreateDefaultSubobject<USplineComponent>(TEXT("SplineComp"));
+    RootComponent = SplineComp;
+    SplineComp->SetMobility(EComponentMobility::Movable);
+
+    // Load default cylinder mesh
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshFinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+    if (MeshFinder.Succeeded())
+    {
+        SegmentMesh = MeshFinder.Object;
+    }
 }
-/*
+
 void APowerLine::PostInitializeComponents()
 {
-	Super::PostInitializeComponents();
+    Super::PostInitializeComponents();
 
-	if (CylinderMeshAsset)
-	{
-		LineMesh->SetStaticMesh(CylinderMeshAsset);
-	}
-	else
-	{
-		// Fallback
-		static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshFinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
-		if (MeshFinder.Succeeded())
-		{
-			LineMesh->SetStaticMesh(MeshFinder.Object);
-		}
-	}
+    // Create single spline mesh component (reused)
+    SplineMeshComp = NewObject<USplineMeshComponent>(this, USplineMeshComponent::StaticClass());
+    SplineMeshComp->RegisterComponent();
+    SplineMeshComp->SetMobility(EComponentMobility::Movable); // Explicitly set to Movable
+    SplineMeshComp->AttachToComponent(SplineComp, FAttachmentTransformRules::KeepRelativeTransform);
+    SplineMeshComp->SetStaticMesh(SegmentMesh);
+    SplineMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	if (BaseEmissiveMaterial)
-	{
-		DynamicMaterial = UMaterialInstanceDynamic::Create(BaseEmissiveMaterial, this);
-		LineMesh->SetMaterial(0, DynamicMaterial);
-	}
+    if (BaseEmissiveMaterial)
+    {
+        DynamicMaterial = UMaterialInstanceDynamic::Create(BaseEmissiveMaterial, this);
+        SplineMeshComp->SetMaterial(0, DynamicMaterial);
+    }
 }
 
 void APowerLine::SetLine(const FVector& Start, const FVector& End, const FColor& Color, float Lifetime)
 {
-	FVector Mid = (Start + End) * 0.5f;
-	FVector Dir = (End - Start).GetSafeNormal();
-	float Length = FVector::Dist(Start, End);
+    // Clear and set spline points (straight line)
+    SplineComp->ClearSplinePoints();
+    SplineComp->AddSplinePoint(Start, ESplineCoordinateSpace::World, false);
+    SplineComp->AddSplinePoint(End, ESplineCoordinateSpace::World, true);  // Update spline
 
-	SetActorLocation(Mid);
-	SetActorRotation(Dir.Rotation());
+    // Get computed locations/tangents for the single segment
+    FVector StartPos = SplineComp->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World);
+    FVector StartTangent = SplineComp->GetTangentAtSplinePoint(0, ESplineCoordinateSpace::World);
+    FVector EndPos = SplineComp->GetLocationAtSplinePoint(1, ESplineCoordinateSpace::World);
+    FVector EndTangent = SplineComp->GetTangentAtSplinePoint(1, ESplineCoordinateSpace::World);
 
-	// Scale: X/Y thin, Z length (Cylinder height ~100uu base)
-	LineMesh->SetRelativeScale3D(FVector(0.015f, 0.015f, Length / 100.0f));
+    // Set spline mesh for the segment
+    SplineMeshComp->SetStartAndEnd(StartPos, StartTangent, EndPos, EndTangent, true);
+    SplineMeshComp->SetStartScale(FVector2D(0.015f, 0.015f));  // Uniform thin radius
+    SplineMeshComp->SetEndScale(FVector2D(0.015f, 0.015f));
 
-	if (DynamicMaterial)
-	{
-		DynamicMaterial->SetVectorParameterValue(EmissiveColorParamName, Color);
-	}
+    if (DynamicMaterial)
+    {
+        DynamicMaterial->SetVectorParameterValue(EmissiveColorParamName, Color);
+    }
 
-	GetWorldTimerManager().SetTimer(DestroyTimer, this, &APowerLine::SelfDestroy, Lifetime, false);
+    GetWorldTimerManager().SetTimer(DestroyTimer, this, &APowerLine::SelfDestroy, Lifetime, false);
 }
 
 void APowerLine::SelfDestroy()
 {
-	Destroy();
+    Destroy();
 }
-
-*/
