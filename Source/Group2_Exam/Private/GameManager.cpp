@@ -1,92 +1,119 @@
 #include "GameManager.h"
 #include "Kismet/GameplayStatics.h"
-#include "Engine/World.h"
+#include "TimerManager.h"
+#include "Engine/Engine.h"
+#include "Math/UnrealMathUtility.h"
 
 AGameManager::AGameManager()
 {
-    PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true;
 }
-/*
+
 void AGameManager::BeginPlay()
 {
-    Super::BeginPlay();
-    StartNextWave();
+	Super::BeginPlay();
+
+	AutoGenerateSpawnPoints();
+
+	if (SpawnTransforms.Num() > 0 && EnemyClass)
+	{
+		StartNewWave();
+	}
 }
 
 void AGameManager::Tick(float DeltaTime)
 {
-    Super::Tick(DeltaTime);
+	Super::Tick(DeltaTime);
 
-    if (!bWaveActive) return;
-
-    SpawnCountdown -= DeltaTime;
-    if (SpawnCountdown <= 0.0f && RemainingEnemiesInWave > 0)
-    {
-        SpawnEnemy();
-        RemainingEnemiesInWave--;
-        SpawnCountdown = CurrentWave.SpawnDelaySeconds;
-    }
-
-    if (RemainingEnemiesInWave <= 0)
-    {
-        WaveEndCountdown += DeltaTime;
-        if (WaveEndCountdown >= CurrentWave.WaveDelaySeconds)
-        {
-            CurrentWaveIndex++;
-            StartNextWave();
-        }
-    }
+	ActiveEnemiesCount = ActiveEnemies.Num();
 }
 
-void AGameManager::StartNextWave()
+void AGameManager::StartNewWave()
 {
-    if (CurrentWaveIndex >= WaveConfigs.Num())
-    {
-        // Endless mode? Restart waves or win condition handled elsewhere
-        CurrentWaveIndex = 0;
-    }
+	CurrentWaveNum++;
+	EnemiesToSpawnThisWave = BaseEnemiesPerWave + (CurrentWaveNum - 1) * EnemiesPerWaveIncrement;
+	bSpawningCurrentWave = true;
+	ActiveEnemies.Empty();
 
-    CurrentWave = WaveConfigs[CurrentWaveIndex];
-    RemainingEnemiesInWave = CurrentWave.NumEnemies;
-    SpawnCountdown = CurrentWave.SpawnDelaySeconds;
-    WaveEndCountdown = 0.0f;
-    bWaveActive = true;
+	GetWorldTimerManager().SetTimer(EnemySpawnTimerHandle, this, &AGameManager::SpawnNextEnemy, TimeBetweenEnemiesInWave, true);
 
-    UE_LOG(LogTemp, Log, TEXT("Started Wave %d: %d enemies"), CurrentWaveIndex, RemainingEnemiesInWave);
+	UE_LOG(LogTemp, Warning, TEXT("🌊 WAVE %d STARTED! Spawning %d enemies"), CurrentWaveNum, EnemiesToSpawnThisWave);
 }
 
-void AGameManager::SpawnEnemy()
+void AGameManager::SpawnNextEnemy()
 {
-    if (SpawnPoints.Num() == 0) return;
+	if (EnemiesToSpawnThisWave <= 0)
+	{
+		GetWorldTimerManager().ClearTimer(EnemySpawnTimerHandle);
+		bSpawningCurrentWave = false;
 
-    int32 RandIndex = FMath::RandRange(0, SpawnPoints.Num() - 1);
-    FVector SpawnLoc = SpawnPoints[RandIndex];
-    SpawnLoc.Z += 1000.0f;
+		// Check if wave already cleared (all died before spawning finished)
+		if (ActiveEnemies.Num() == 0)
+		{
+			GetWorldTimerManager().SetTimer(NextWaveTimerHandle, this, &AGameManager::StartNewWave, TimeBetweenWaves, false);
+		}
 
-    FHitResult Hit;
-    FVector TraceEnd = SpawnLoc - FVector(0.0f, 0.0f, 2000.0f);
-    FCollisionShape BoxShape = FCollisionShape::MakeBox(FVector(50.0f));
+		return;
+	}
 
-    bool bHit = GetWorld()->SweepSingleByChannel(Hit, SpawnLoc, TraceEnd, FQuat::Identity, ECC_WorldStatic, BoxShape);
-    if (bHit)
-    {
-        SpawnLoc = Hit.Location;
-    }
+	if (SpawnTransforms.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No spawn transforms!"));
+		return;
+	}
 
-    FActorSpawnParameters Params;
-    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	int32 SpawnIdx = FMath::RandRange(0, SpawnTransforms.Num() - 1);
+	FTransform SpawnTransform = SpawnTransforms[SpawnIdx];
 
-    if (CurrentWave.EnemyClass)
-    {
-        AEnemyPawn* NewEnemy = GetWorld()->SpawnActor<AEnemyPawn>(CurrentWave.EnemyClass, SpawnLoc, FRotator::ZeroRotator, Params);
-        if (NewEnemy)
-        {
-            NewEnemy->MaxHealth *= CurrentWave.HealthMultiplier;
-            NewEnemy->CurrentHealth = NewEnemy->MaxHealth;
-            NewEnemy->MoveSpeed *= CurrentWave.SpeedMultiplier;
-            UE_LOG(LogTemp, Log, TEXT("Spawned enemy for wave %d"), CurrentWaveIndex);
-        }
-    }
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	AEnemyCharacter* NewEnemy = GetWorld()->SpawnActor<AEnemyCharacter>(EnemyClass, SpawnTransform);
+	if (NewEnemy)
+	{
+		NewEnemy->GameManager = this;
+		ActiveEnemies.Add(NewEnemy);
+		EnemiesToSpawnThisWave--;
+	}
 }
 
-*/
+void AGameManager::OnEnemyDeath(AEnemyCharacter* Enemy)
+{
+	ActiveEnemies.RemoveSwap(Enemy);
+
+	if (ActiveEnemies.Num() == 0 && !bSpawningCurrentWave)
+	{
+		GetWorldTimerManager().SetTimer(NextWaveTimerHandle, this, &AGameManager::StartNewWave, TimeBetweenWaves, false);
+	}
+}
+
+void AGameManager::AutoGenerateSpawnPoints()
+{
+	if (SpawnTransforms.Num() > 0) return;
+
+	TArray<AActor*> GridManagers;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGridManager::StaticClass(), GridManagers);
+
+	if (GridManagers.Num() == 0) return;
+
+	AGridManager* GridMgr = Cast<AGridManager>(GridManagers[0]);
+	if (!GridMgr) return;
+
+	int32 NumSpawnPoints = FMath::Clamp(GridMgr->GridSizeY / 6, 3, 8);
+	for (int32 i = 0; i < NumSpawnPoints; ++i)
+	{
+		float YFraction = (float)i / (NumSpawnPoints - 1);
+		int32 GridY = FMath::RoundToInt(YFraction * (GridMgr->GridSizeY - 1));
+		
+		FVector SpawnLocation(
+			GridMgr->GridOrigin.X + GridMgr->CellSize * 0.5f,  // Center of first column (X=0)
+			GridMgr->GridOrigin.Y + GridY * GridMgr->CellSize + GridMgr->CellSize * 0.5f,
+			GridMgr->GridOrigin.Z + 100.0f
+		);
+
+		FTransform SpawnTransform(FRotator::ZeroRotator, SpawnLocation);
+		SpawnTransforms.Add(SpawnTransform);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Auto-generated %d spawn points on the grid"), SpawnTransforms.Num());
+}

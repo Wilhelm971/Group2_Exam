@@ -50,6 +50,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float Bounty = 20.0f;
 
+    /** Reference to GameManager for wave tracking. */
+    UPROPERTY()
+    class AGameManager* GameManager;
+
     // =============================================================
     // DAMAGE FUNCTIONS
     // =============================================================

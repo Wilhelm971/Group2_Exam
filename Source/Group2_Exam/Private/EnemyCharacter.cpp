@@ -1,4 +1,6 @@
 #include "EnemyCharacter.h"
+
+#include "GameManager.h"
 #include "PowerNode.h"
 #include "PowerCannon.h"
 #include "PowerCore.h"
@@ -50,6 +52,14 @@ AEnemyCharacter::AEnemyCharacter()
 void AEnemyCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    // Find GameManager
+    TArray<AActor*> GameManagers;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGameManager::StaticClass(), GameManagers);
+    if (GameManagers.Num() > 0)
+    {
+        GameManager = Cast<AGameManager>(GameManagers[0]);
+    }
 
 
     // Snap to ground if not already.
@@ -286,6 +296,10 @@ void AEnemyCharacter::TakeDamageCustom(float DamageAmount)
         }
         
         UE_LOG(LogTemp, Log, TEXT("%s DIED"), *GetName());
+        if (GameManager)
+        {
+            GameManager->OnEnemyDeath(this);
+        }
         Destroy();
     }
 }
