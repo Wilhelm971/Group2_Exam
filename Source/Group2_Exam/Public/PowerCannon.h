@@ -8,6 +8,7 @@
 
 class UStaticMesh;
 class UMaterialInterface;
+class APowerLine;
 
 /**
  * APowerCannon
@@ -55,6 +56,9 @@ public:
     /** Damage dealt per shot. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
     float Damage = 10.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
+    TSubclassOf<APowerLine> ShotLineClass;
 
     // =============================================================
     // MESH AND MATERIALS

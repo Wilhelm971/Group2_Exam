@@ -2,6 +2,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
+#include "PowerLine.h"
 #include "EnemyCharacter.h"
 
 // =============================================================
@@ -189,8 +190,19 @@ void APowerCannon::FireAtEnemy(AActor* Target)
     }
 
     // Debug line for shot visualization.
-    DrawDebugLine(GetWorld(), GetActorLocation(), Target->GetActorLocation(),
-                  FColor::Red, false, 0.2f, 0, 2.0f);
+    //DrawDebugLine(GetWorld(), GetActorLocation(), Target->GetActorLocation(), FColor::Red, false, 0.2f, 0, 2.0f);
+
+    // Replace debug line with spline-based visualization (using PowerLine-like actor)
+    if (ShotLineClass)
+    {
+        FVector Start = GetActorLocation();
+        FVector End = Target->GetActorLocation();
+        APowerLine* ShotLine = GetWorld()->SpawnActor<APowerLine>(ShotLineClass, FVector::ZeroVector, FRotator::ZeroRotator);
+        if (ShotLine)
+        {
+            ShotLine->SetLine(Start, End, FColor::Red, 0.2f);  // Red color, disappears after 0.2 seconds
+        }
+    }
 
     UE_LOG(LogTemp, Log, TEXT("%s fired at %s"), *GetName(), *Target->GetName());
 }
