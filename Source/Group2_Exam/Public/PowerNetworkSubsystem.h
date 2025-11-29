@@ -88,6 +88,9 @@ private:
 
 	bool bIsPropagating = false;
 
+	UPROPERTY()
+	TArray<APowerLine*> ActivePowerLines;
+
 
 
 

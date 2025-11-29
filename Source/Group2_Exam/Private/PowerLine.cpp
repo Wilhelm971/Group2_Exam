@@ -55,15 +55,18 @@ void APowerLine::SetLine(const FVector& Start, const FVector& End, const FColor&
 
     // Set spline mesh for the segment
     SplineMeshComp->SetStartAndEnd(StartPos, StartTangent, EndPos, EndTangent, true);
-    SplineMeshComp->SetStartScale(FVector2D(0.015f, 0.015f));  // Uniform thin radius
-    SplineMeshComp->SetEndScale(FVector2D(0.015f, 0.015f));
+    SplineMeshComp->SetStartScale(FVector2D(Thickness, Thickness));  // Uniform thin radius
+    SplineMeshComp->SetEndScale(FVector2D(Thickness, Thickness));
 
     if (DynamicMaterial)
     {
         DynamicMaterial->SetVectorParameterValue(EmissiveColorParamName, Color);
     }
 
-    GetWorldTimerManager().SetTimer(DestroyTimer, this, &APowerLine::SelfDestroy, Lifetime, false);
+    if (Lifetime > 0.0f)
+    {
+        GetWorldTimerManager().SetTimer(DestroyTimer, this, &APowerLine::SelfDestroy, Lifetime, false);
+    }
 }
 
 void APowerLine::SelfDestroy()

@@ -35,6 +35,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Line")
 	void SetLine(const FVector& Start, const FVector& End, const FColor& Color, float Lifetime = 2.0f);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Line")
+	float Thickness = 0.06f;
+
 private:
 	UPROPERTY()
 	UMaterialInstanceDynamic* DynamicMaterial;

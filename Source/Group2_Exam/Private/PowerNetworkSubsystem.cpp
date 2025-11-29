@@ -259,6 +259,14 @@ TSet<APowerNode*> UPowerNetworkSubsystem::GetConnectedComponent(APowerNode* Star
 void UPowerNetworkSubsystem::StartPowerVisualization()
 {
     // Clear old lines
+    for (APowerLine* Line : ActivePowerLines)
+    {
+        if (Line)
+        {
+            Line->Destroy();
+        }
+    }
+    ActivePowerLines.Empty();
     FlushPersistentDebugLines(GetWorld());
 
     // Clear previous visualization
@@ -315,14 +323,13 @@ void UPowerNetworkSubsystem::ProcessVisualizationStep()
     if (From && PowerLineClass)
     {
         
-        UE_LOG(LogTemp, Log, TEXT("Test 1"));
         FVector FromLoc = From->GetActorLocation();
         FVector CurrentLoc = Current->GetActorLocation();
         APowerLine* Line = GetWorld()->SpawnActor<APowerLine>(PowerLineClass, FVector::ZeroVector, FRotator::ZeroRotator);
         if (Line)
         {
-            UE_LOG(LogTemp, Log, TEXT("Test 2"));
-            Line->SetLine(FromLoc, CurrentLoc, FColor::Blue, 2.0f);  // Lifetime for fade
+            Line->SetLine(FromLoc, CurrentLoc, FColor::Cyan, -1.0f);  // -1 for no auto-destroy
+            ActivePowerLines.Add(Line);  // Track for next clear
         }
         
         //DrawDebugLine(GetWorld(), From->GetActorLocation(), Current->GetActorLocation(), FColor::Cyan, true, -1.0f, 0, 8.0f);
