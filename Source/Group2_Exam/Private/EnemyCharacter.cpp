@@ -274,7 +274,7 @@ void AEnemyCharacter::AttackTarget()
 void AEnemyCharacter::TakeDamageCustom(float DamageAmount)
 {
     if (DamageAmount <= 0.f) return;
-
+    
     CurrentHealth -= DamageAmount;
     if (CurrentHealth <= 0.f)
     {

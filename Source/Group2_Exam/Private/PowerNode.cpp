@@ -91,12 +91,14 @@ void APowerNode::LosePower()
 void APowerNode::TakeDamageCustom(float DamageAmount)
 {
     if (DamageAmount <= 0.0f) return;
-
+    
     CurrentHealth -= DamageAmount;
 
     UE_LOG(LogTemp, Warning, TEXT("%s hit! %.0f dmg → %.0f/%.0f HP"),
            *GetName(), DamageAmount, CurrentHealth, MaxHealth);
 
+    UpdateHealthBar();
+    
     if (CurrentHealth <= 0.0f)
     {
         if (Cast<APowerCore>(this))
@@ -140,7 +142,19 @@ void APowerNode::TakeDamageCustom(float DamageAmount)
         {
             // Normal nodes (e.g., cannons) just destroy.
             UE_LOG(LogTemp, Log, TEXT("%s DESTROYED!"), *GetName());
+            bIsDestroyed = true;
             Destroy();
         }
     }
+}
+// Updates the Health Progress Bar
+void APowerNode::UpdateHealthBar()
+{
+    if (!HealthBar) return;
+    
+    float Percent = 0.0f;
+    
+    Percent = CurrentHealth / MaxHealth;
+
+    HealthBar->SetProgress(Percent);
 }

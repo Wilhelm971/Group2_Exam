@@ -1,5 +1,5 @@
 #include "PowerCannon.h"
-#include "EnemyPawn.h"  // Updated to EnemyPawn from EnemyCharacter
+#include "EnemyCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
@@ -33,6 +33,10 @@ APowerCannon::APowerCannon()
     {
         CannonStaticMeshAsset = MeshAsset.Object;
     }
+
+    // Health Bar Component
+    HealthBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
+    HealthBarComponent->SetupAttachment(RootComponent);
 }
 
 // =============================================================
@@ -58,6 +62,15 @@ void APowerCannon::BeginPlay()
 
     // Start firing timer always, but check conditions inside TryShoot.
     GetWorld()->GetTimerManager().SetTimer(TimerHandle_Fire, this, &APowerCannon::TryShoot, FireInterval, true);
+
+    // Health Bar
+    if (HealthBarComponent)
+    {
+        UUserWidget* WidgetObject = HealthBarComponent->GetWidget();
+        HealthBar = Cast<UW_HealthBar>(WidgetObject);
+    }
+
+    UpdateHealthBar();
 }
 
 // =============================================================
@@ -151,7 +164,7 @@ void APowerCannon::TryShoot()
 
     // Find all enemies.
     TArray<AActor*> Enemies;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyPawn::StaticClass(), Enemies);
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), Enemies);
 
     AActor* ClosestEnemy = nullptr;
     float ClosestDist = FLT_MAX;
@@ -181,7 +194,7 @@ void APowerCannon::FireAtEnemy(AActor* Target)
     if (!Target) return;
 
     // Apply damage if valid enemy.
-    if (AEnemyPawn* Enemy = Cast<AEnemyPawn>(Target))
+    if (AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Target))
     {
         Enemy->TakeDamageFromCannon(Damage);
     }

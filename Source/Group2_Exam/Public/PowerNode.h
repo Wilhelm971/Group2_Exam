@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "W_HealthBar.h"
 #include "GameFramework/Actor.h"
 #include "PowerNode.generated.h"
 
@@ -77,5 +78,11 @@ public:
     /** Applies custom damage to the node. */
     UFUNCTION(BlueprintCallable, Category = "Damage")
     virtual void TakeDamageCustom(float DamageAmount);
-    
+
+    // Health Bar
+    UPROPERTY()
+    UW_HealthBar* HealthBar;
+
+    UFUNCTION(BlueprintCallable, Category = "Cannon")
+    virtual void UpdateHealthBar();
 };

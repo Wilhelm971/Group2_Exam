@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "PowerNode.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/WidgetComponent.h"
 #include "PowerCannon.generated.h"
 
 class UStaticMesh;
@@ -104,7 +105,7 @@ public:
     /** Updates visuals based on placement validity. */
     UFUNCTION(BlueprintCallable, Category = "Building")
     void UpdatePreviewVisuals();
-
+    
 protected:
     // =============================================================
     // COMPONENTS
@@ -113,6 +114,8 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UStaticMeshComponent* CannonMesh;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    UWidgetComponent* HealthBarComponent;
 private:
     // =============================================================
     // PRIVATE FUNCTIONS
