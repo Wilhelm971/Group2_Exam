@@ -8,45 +8,77 @@
 #include "Engine/StaticMesh.h"
 #include "PowerLine.generated.h"
 
+/**
+ * APowerLine
+ * 
+ * Actor for visualizing power transmission as a spline-based line.
+ * Used for temporary effects like shots or pulses.
+ * 
+ * @note Supports color, thickness, and lifetime for auto-destruction.
+ */
 UCLASS()
 class GROUP2_EXAM_API APowerLine : public AActor
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	APowerLine();
+    /**
+     * Default constructor. Sets up spline and mesh.
+     */
+    APowerLine();
 
 protected:
-	virtual void PostInitializeComponents() override;
+    /**
+     * Applies default mesh and material after initialization.
+     */
+    virtual void PostInitializeComponents() override;
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USplineComponent* SplineComp;
+    /** Spline component for line path. Read-only in Blueprints. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    USplineComponent* SplineComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
-	UStaticMesh* SegmentMesh;
+    /** Static mesh for line segments (e.g., cylinder). */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
+    UStaticMesh* SegmentMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
-	UMaterialInterface* BaseEmissiveMaterial;
+    /** Base material for emissive effects. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
+    UMaterialInterface* BaseEmissiveMaterial;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
-	FName EmissiveColorParamName = TEXT("EmissiveColor");
+    /** Parameter name for emissive color in material. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
+    FName EmissiveColorParamName = TEXT("EmissiveColor");
 
-	UFUNCTION(BlueprintCallable, Category = "Line")
-	void SetLine(const FVector& Start, const FVector& End, const FColor& Color, float Lifetime = 2.0f);
+    /**
+     * Sets up the line between start and end points.
+     * @param Start Starting world position.
+     * @param End Ending world position.
+     * @param Color Color for emissive material.
+     * @param Lifetime Duration before auto-destroy (negative for permanent).
+     */
+    UFUNCTION(BlueprintCallable, Category = "Line")
+    void SetLine(const FVector& Start, const FVector& End, const FColor& Color, float Lifetime = 2.0f);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Line")
-	float Thickness = 0.06f;
+    /** Thickness of the line (scale for mesh). */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Line")
+    float Thickness = 0.06f;
 
 private:
-	UPROPERTY()
-	UMaterialInstanceDynamic* DynamicMaterial;
+    /** Dynamic material instance for runtime color changes. */
+    UPROPERTY()
+    UMaterialInstanceDynamic* DynamicMaterial;
 
-	UPROPERTY()
-	USplineMeshComponent* SplineMeshComp;
+    /** Spline mesh component for rendering the line. */
+    UPROPERTY()
+    USplineMeshComponent* SplineMeshComp;
 
-	FTimerHandle DestroyTimer;
+    /** Timer for auto-destruction. */
+    FTimerHandle DestroyTimer;
 
-	UFUNCTION()
-	void SelfDestroy();
+    /**
+     * Destroys the actor after lifetime expires.
+     */
+    UFUNCTION()
+    void SelfDestroy();
 };

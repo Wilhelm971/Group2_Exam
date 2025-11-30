@@ -14,7 +14,12 @@ class APowerCannon;  // Forward declaration (replaces include for CannonToPlaceC
  * ATopDownPlayerController
  * 
  * Player controller for a top-down tower defense game.
- * Manages camera movement, input handling, and building/placement of towers.
+ * Manages camera movement, input handling via Enhanced Input, building/placement of towers,
+ * and economy (coins over time). Possesses a camera pawn for view control.
+ * 
+ * @note Building mode allows preview and placement of cannons if affordable.
+ * @see ATopDownCameraPawn for camera setup.
+ * @see APowerCannon for placeable towers.
  */
 UCLASS()
 class GROUP2_EXAM_API ATopDownPlayerController : public APlayerController
@@ -25,16 +30,33 @@ public:
     // =============================================================
     // CONSTRUCTOR AND OVERRIDES
     // =============================================================
+    
+    /**
+     * Default constructor. Sets initial mouse and input properties.
+     */
     ATopDownPlayerController();
 
+    /**
+     * Called when the game starts. Sets up input mappings, caches pawn, and starts coin timer.
+     */
     virtual void BeginPlay() override;
+    
+    /**
+     * Sets up input bindings using Enhanced Input system.
+     */
     virtual void SetupInputComponent() override;
+    
+    /**
+     * Called every frame to update building preview if active.
+     * @param DeltaSeconds Time since last frame (in seconds).
+     */
     virtual void Tick(float DeltaSeconds) override;
 
     // =============================================================
     // BUILDING PROPERTIES
     // =============================================================
-    /** Class of the cannon to spawn during building mode. */
+    
+    /** Class of the cannon to spawn during building mode. Set in editor or Blueprints. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
     TSubclassOf<APowerCannon> CannonToPlaceClass;
 
@@ -42,29 +64,35 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
     TEnumAsByte<ECollisionChannel> PlacementTraceChannel = ECC_Visibility;
 
-    /** Preview instance of the cannon during building mode. */
+    /** Preview instance of the cannon during building mode (transient). */
     UPROPERTY()
     APowerCannon* PreviewCannon;
 
-    /** Flag indicating if building mode is active. */
+    /** Flag indicating if building mode is active. Read-only in Blueprints. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Building")
     bool bBuildingModeActive = false;
 
-
     // =============================================================
-    // ECONOMY PROPERTIES (NEW)
+    // ECONOMY PROPERTIES
     // =============================================================
-    /** Current number of coins the player has. */
+    
+    /** Current number of coins the player has. Read-only in Blueprints for UI. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Economy")
     float CurrentCoins = 0.0f;
 
-    /** Cost to place a cannon. */
+    /** Cost to place a cannon. Configurable in editor. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Economy")
     float CannonCost = 50.0f;
 
-    /** Coins earned per second. */
+    /** Coins earned per second. Upgradable via gameplay. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Economy")
     float CoinsPerSecond = 7.0f;
+
+    // =============================================================
+    // UI (truncated in provided doc; assuming HUD setup)
+    // =============================================================
+    // ... (truncated 1206 characters)... Reference to the controlled pawn (camera pawn).
+
 
     // =============================================================
     // UI
@@ -85,6 +113,12 @@ public:
 
 
     
+
+    /** Reference to the controlled pawn for camera operations. */
+    APawn* ControlledPawn;
+
+
+        
     // =============================================================
     // CAMERA PROPERTIES
     // =============================================================
@@ -107,17 +141,18 @@ public:
     /** Target arm length for smooth zooming interpolation. */
     float TargetArmLength = 2500.0f;
 
-    /** Cached reference to the controlled pawn (camera pawn). */
-    APawn* ControlledPawn;
+
+    
 
     // =============================================================
     // INPUT PROPERTIES
     // =============================================================
-    /** Input mapping context for enhanced input system. */
+    
+    /** Input mapping context for enhanced input system. Set in defaults. */
     UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
     UInputMappingContext* InputMapping;
 
-    /** Input action for camera movement. */
+    /** Input action for camera movement (panning). */
     UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
     UInputAction* MoveAction;
 
@@ -140,40 +175,68 @@ public:
     // =============================================================
     // PUBLIC FUNCTIONS (INPUT HANDLERS)
     // =============================================================
-    /** Handles camera panning input. */
+    
+    /**
+     * Handles camera panning input from MoveAction.
+     * @param Value Input value (vector for direction).
+     */
     void HandleMove(const FInputActionValue& Value);
 
-    /** Handles camera zoom input. */
+    /**
+     * Handles camera zoom input from ZoomAction.
+     * @param Value Input value (scalar for zoom amount).
+     */
     void HandleZoom(const FInputActionValue& Value);
 
-    /** Toggles building mode on/off. */
+    /**
+     * Toggles building mode on/off.
+     * @param Value Trigger value (not used).
+     */
     void ToggleBuildingMode(const FInputActionValue& Value);
 
-    /** Places the preview cannon if valid. */
+    /**
+     * Places the preview cannon if valid and affordable.
+     * @param Value Trigger value (not used).
+     */
     void PlaceBuilding(const FInputActionValue& Value);
 
-    /** Cancels building mode. */
+    /**
+     * Cancels building mode and destroys preview.
+     * @param Value Trigger value (not used).
+     */
     void CancelBuilding(const FInputActionValue& Value);
 
 private:
     // =============================================================
     // PRIVATE FUNCTIONS (BUILDING HELPERS)
     // =============================================================
-    /** Initializes building mode and spawns preview. */
+    
+    /**
+     * Initializes building mode and spawns preview cannon.
+     */
     void StartBuildingMode();
 
-    /** Cleans up building mode and destroys preview. */
+    /**
+     * Cleans up building mode and destroys preview cannon.
+     */
     void CancelBuildingMode();
 
-    /** Updates the preview cannon's position based on cursor. */
+    /**
+     * Updates the preview cannon's position based on cursor hit result.
+     * Checks validity and updates visuals.
+     */
     void UpdatePreviewPosition();
 
     // =============================================================
-    // PRIVATE FUNCTIONS (ECONOMY HELPERS - NEW)
+    // PRIVATE FUNCTIONS (ECONOMY HELPERS)
     // =============================================================
-    /** Timer-based function to earn coins over time. */
+    
+    /**
+     * Timer-based function to earn coins over time.
+     * Called every second; adds CoinsPerSecond to CurrentCoins.
+     */
     void EarnCoins();
 
-    /** Timer handle for coin earning. */
+    /** Timer handle for coin earning loop. */
     FTimerHandle CoinTimerHandle;
 };

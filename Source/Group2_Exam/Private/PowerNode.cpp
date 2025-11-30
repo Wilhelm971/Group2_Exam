@@ -5,11 +5,10 @@
 #include "TDGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
-// =============================================================
-// CLASS DESCRIPTION
-// =============================================================
-// APowerNode: Base class for power-transmitting nodes.
-// Handles registration, power state, and damage.
+/**
+ * APowerNode: Base class for power-transmitting nodes.
+ * Handles registration, power state, and damage.
+ */
 
 // =============================================================
 // CONSTRUCTOR
@@ -17,8 +16,8 @@
 // Sets default values.
 APowerNode::APowerNode()
 {
-    PrimaryActorTick.bCanEverTick = false;
-    CurrentHealth = MaxHealth;  // Initialize health to max.
+    PrimaryActorTick.bCanEverTick = false;  // No per-frame needed for base.
+    CurrentHealth = MaxHealth;  // Initialize to full health.
 }
 
 // =============================================================
@@ -33,7 +32,7 @@ void APowerNode::BeginPlay()
     {
         if (UPowerNetworkSubsystem* Net = World->GetSubsystem<UPowerNetworkSubsystem>())
         {
-            Net->RegisterNode(this);
+            Net->RegisterNode(this);  // Add to graph for connections.
         }
     }
 }
@@ -48,7 +47,7 @@ void APowerNode::EndPlay(const EEndPlayReason::Type EndPlayReason)
     {
         if (UPowerNetworkSubsystem* Net = World->GetSubsystem<UPowerNetworkSubsystem>())
         {
-            Net->UnregisterNode(this);
+            Net->UnregisterNode(this);  // Remove from graph to prevent dangling refs.
         }
     }
 
@@ -71,7 +70,7 @@ void APowerNode::ReceivePower(APowerNode* FromNode)
 // Receives power amount.
 void APowerNode::ReceivePowerAmount(float Amount)
 {
-    CurrentPower += Amount;
+    CurrentPower += Amount;  // Accumulate; subclasses may consume or cap.
 }
 
 // Loses power and logs the change.
@@ -101,7 +100,7 @@ void APowerNode::TakeDamageCustom(float DamageAmount)
     {
         if (Cast<APowerCore>(this))
         {
-            // Turn core into dormant.
+            // Convert core to dormant on destruction (intent: gameplay progression).
             if (UWorld* World = GetWorld())
             {
                 FActorSpawnParameters Params;
@@ -113,26 +112,24 @@ void APowerNode::TakeDamageCustom(float DamageAmount)
                     UE_LOG(LogTemp, Log, TEXT("PowerCore %s turned into DormantPowerCores"), *GetName());
                 }
 
-                // Destroy the core (EndPlay unregisters).
+                // Destroy core; EndPlay handles unregistration.
                 Destroy();
 
-                // Rebuild connections.
+                // Rebuild network after change.
                 if (UPowerNetworkSubsystem* Net = World->GetSubsystem<UPowerNetworkSubsystem>())
                 {
                     Net->RebuildConnections();
                 }
 
-                // Check lose condition.
+                // Check lose condition: No active cores left.
                 TArray<AActor*> ActiveCores;
                 UGameplayStatics::GetAllActorsOfClass(World, APowerCore::StaticClass(), ActiveCores);
                 
                 if (ActiveCores.Num() == 0)
                 {
                     UE_LOG(LogTemp, Warning, TEXT("LOSE CONDITION MET: 5 dormant PowerCores!"));
-                    // TODO: Notify GameMode or handle loss.
                     if (ATDGameMode* GameMode = Cast<ATDGameMode>(UGameplayStatics::GetGameMode(World)))
                     {
-                        UE_LOG(LogTemp, Warning, TEXT("Test 3"));
                         GameMode->Defeat();
                     }
                 }
@@ -140,7 +137,7 @@ void APowerNode::TakeDamageCustom(float DamageAmount)
         }
         else
         {
-            // Normal nodes (e.g., cannons) just destroy.
+            // Normal nodes destroy without conversion.
             UE_LOG(LogTemp, Log, TEXT("%s DESTROYED!"), *GetName());
             Destroy();
         }

@@ -4,11 +4,10 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-// =============================================================
-// CLASS DESCRIPTION
-// =============================================================
-// AGridManager: Manages a 2D grid for pathfinding.
-// Spawns nodes, marks obstacles, and provides A* pathfinding.
+/**
+ * AGridManager: Manages a 2D grid for pathfinding.
+ * Spawns nodes, marks obstacles, and provides A* pathfinding.
+ */
 
 // =============================================================
 // CONSTRUCTOR
@@ -16,7 +15,7 @@
 // Sets default values.
 AGridManager::AGridManager()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = false;  // No updates after setup.
 }
 
 // =============================================================
@@ -27,7 +26,7 @@ void AGridManager::BeginPlay()
 {
     Super::BeginPlay();
     SpawnGrid();
-    MarkObstacles();
+    MarkObstacles();  // Detect static obstacles post-spawn.
 }
 
 // =============================================================
@@ -36,7 +35,7 @@ void AGridManager::BeginPlay()
 // Creates and populates the grid with node actors.
 void AGridManager::SpawnGrid()
 {
-    ClearGrid();
+    ClearGrid();  // Reset if respawning.
 
     if (!NodeClass) return;
     if (GridSizeX <= 0 || GridSizeY <= 0 || CellSize <= 0.f) return;
@@ -44,14 +43,15 @@ void AGridManager::SpawnGrid()
     UWorld* World = GetWorld();
     if (!World) return;
 
-    Grid.Reserve(GridSizeX * GridSizeY);
+    Grid.Reserve(GridSizeX * GridSizeY);  // Pre-allocate for perf.
 
     for (int32 Y = 0; Y < GridSizeY; ++Y)
     {
         for (int32 X = 0; X < GridSizeX; ++X)
         {
+            // Center spawn in cell for alignment.
             FVector SpawnLoc = GridOrigin + FVector(X * CellSize, Y * CellSize, 0.f);
-            SpawnLoc += FVector(CellSize * 0.5f, CellSize * 0.5f, 0.f);  // Center in cell.
+            SpawnLoc += FVector(CellSize * 0.5f, CellSize * 0.5f, 0.f);
 
             ANodeActor* Node = World->SpawnActor<ANodeActor>(NodeClass, SpawnLoc, FRotator::ZeroRotator);
             if (Node)
@@ -60,9 +60,10 @@ void AGridManager::SpawnGrid()
                 Node->bIsWalkable = true;
                 Grid.Add(Node);
 
+                // Debug: Draw cell boxes if enabled.
                 if (bDrawDebugGrid)
                 {
-                    DrawDebugBox(World, SpawnLoc, FVector(CellSize * 0.5f), FColor::Green, true, -1.f, 0, 1.f);
+                    DrawDebugBox(World, SpawnLoc, FVector(CellSize * 0.5f), FColor::Green, true);
                 }
             }
         }
@@ -72,15 +73,12 @@ void AGridManager::SpawnGrid()
 // =============================================================
 // CLEAR GRID
 // =============================================================
-// Destroys all grid nodes and clears the array.
+// Destroys all nodes.
 void AGridManager::ClearGrid()
 {
     for (ANodeActor* Node : Grid)
     {
-        if (Node && Node->IsValidLowLevel())
-        {
-            Node->Destroy();
-        }
+        if (Node) Node->Destroy();
     }
     Grid.Empty();
 }
@@ -88,57 +86,100 @@ void AGridManager::ClearGrid()
 // =============================================================
 // MARK OBSTACLES
 // =============================================================
-// Checks for overlaps with static actors to mark non-walkable nodes.
+// Marks non-walkable based on overlaps.
 void AGridManager::MarkObstacles()
 {
-    if (Grid.Num() == 0) return;
-
-    UWorld* World = GetWorld();
-    if (!World) return;
-
-    TArray<AActor*> OverlapActors;
-    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes = { UEngineTypes::ConvertToObjectType(ECC_WorldStatic) };
-
-    for (int32 Idx = 0; Idx < Grid.Num(); ++Idx)
+    for (ANodeActor* Node : Grid)
     {
-        ANodeActor* Node = Grid[Idx];
         if (!Node) continue;
 
-        FVector Center = Node->GetActorLocation();
-        FVector Extent = FVector(CellSize * 0.4f);  // Slightly smaller for tolerance.
+        // Trace for obstacles (e.g., world static; adjust channel).
+        FHitResult Hit;
+        ECollisionChannel TraceChannel = ECC_WorldStatic;
+        FCollisionQueryParams Params;
+        Params.AddIgnoredActor(this);
 
-        OverlapActors.Empty();
-
-        TArray<AActor*> ActorsToIgnore;  // Empty ignore list.
-        UKismetSystemLibrary::BoxOverlapActors(
-            World,
-            Center,
-            Extent,
-            ObjectTypes,
-            AActor::StaticClass(),
-            ActorsToIgnore,
-            OverlapActors
-        );
-
-        bool bBlocked = false;
-        for (AActor* Actor : OverlapActors)
+        bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Node->GetActorLocation(), Node->GetActorLocation() + FVector(0,0,-1000), TraceChannel, Params);
+        if (bHit && Hit.GetActor() /* check if obstacle */ )
         {
-            if (Actor != this && !Actor->IsA(ANodeActor::StaticClass()))
-            {
-                bBlocked = true;
-                break;
-            }
-        }
-
-        Node->bIsWalkable = !bBlocked;
-
-        if (bDrawDebugGrid)
-        {
-            FColor Color = Node->bIsWalkable ? FColor::Green : FColor::Red;
-            DrawDebugBox(World, Center, FVector(CellSize * 0.5f), Color, true, -1.f, 0, 2.f);
+            Node->bIsWalkable = false;
+            Node->SetState(ENodeState::Blocked);
         }
     }
 }
+
+// =============================================================
+// FIND PATH
+// =============================================================
+// A* pathfinding.
+TArray<FIntPoint> AGridManager::FindPath(const FIntPoint& StartIdx, const FIntPoint& EndIdx)
+{
+    if (!IsValidIndex(StartIdx) || !IsValidIndex(EndIdx)) return TArray<FIntPoint>();
+
+    TArray<FIntPoint> EmptyPath;
+
+    TSet<FIntPoint> OpenSet;
+    TMap<FIntPoint, FIntPoint> CameFrom;
+    TMap<FIntPoint, float> GScore;
+    TMap<FIntPoint, float> FScore;
+
+    // Init start.
+    OpenSet.Add(StartIdx);
+    GScore.Add(StartIdx, 0.f);
+    FScore.Add(StartIdx, Heuristic(StartIdx, EndIdx));
+
+    while (!OpenSet.IsEmpty())
+    {
+        // Find lowest F score (simple loop; use heap for large grids).
+        FIntPoint Current;
+        float MinF = FLT_MAX;
+        for (FIntPoint P : OpenSet)
+        {
+            float F = FScore.FindRef(P);
+            if (F < MinF)
+            {
+                MinF = F;
+                Current = P;
+            }
+        }
+
+        if (Current == EndIdx)
+        {
+            return ReconstructPath(CameFrom, Current);
+        }
+
+        OpenSet.Remove(Current);
+
+        // Check neighbors.
+        TArray<FIntPoint> Neighbors = GetNeighbors(Current);
+        for (FIntPoint Neighbor : Neighbors)
+        {
+            if (!IsValidIndex(Neighbor)) continue;
+
+            ANodeActor* NeighborNode = Grid[Neighbor.X + Neighbor.Y * GridSizeX];
+            if (!NeighborNode || !NeighborNode->bIsWalkable) continue;
+
+            // Uniform cost (1 per step).
+            float TentativeG = GScore.FindRef(Current) + 1.f;
+
+            if (!OpenSet.Contains(Neighbor))
+            {
+                OpenSet.Add(Neighbor);
+            }
+            else if (TentativeG >= GScore.FindRef(Neighbor))
+            {
+                continue;
+            }
+
+            CameFrom.Add(Neighbor, Current);
+            GScore.Add(Neighbor, TentativeG);
+            FScore.Add(Neighbor, TentativeG + Heuristic(Neighbor, EndIdx));
+        }
+    }
+
+    return EmptyPath;  // No path.
+}
+
 
 // =============================================================
 // CONVERSION HELPERS
@@ -160,79 +201,7 @@ FVector AGridManager::GridToWorldCenter(const FIntPoint& GridIndex) const
     return World;
 }
 
-// =============================================================
-// PATHFINDING
-// =============================================================
-// Finds A* path between grid indices.
-TArray<FIntPoint> AGridManager::FindPath(const FIntPoint& StartIdx, const FIntPoint& EndIdx)
-{
-    TArray<FIntPoint> EmptyPath;
-    if (!IsValidIndex(StartIdx) || !IsValidIndex(EndIdx)) return EmptyPath;
 
-    ANodeActor* StartNode = Grid[StartIdx.X + StartIdx.Y * GridSizeX];
-    ANodeActor* EndNode = Grid[EndIdx.X + EndIdx.Y * GridSizeX];
-
-    StartNode->SetState(ENodeState::Start);
-    EndNode->SetState(ENodeState::Target);
-    
-    if (!StartNode || !EndNode || !StartNode->bIsWalkable || !EndNode->bIsWalkable)
-        return EmptyPath;
-
-    // A* structures.
-    TSet<FIntPoint> OpenSet;
-    TSet<FIntPoint> ClosedSet;
-    TMap<FIntPoint, FIntPoint> CameFrom;
-    TMap<FIntPoint, float> GScore;
-    TMap<FIntPoint, float> FScore;
-
-    OpenSet.Add(StartIdx);
-    GScore.Add(StartIdx, 0.f);
-    FScore.Add(StartIdx, Heuristic(StartIdx, EndIdx));
-
-    while (!OpenSet.IsEmpty())
-    {
-        // Find node with lowest FScore.
-        FIntPoint Current = OpenSet.Array()[0];
-        for (const FIntPoint& Idx : OpenSet)
-        {
-            if (FScore.FindRef(Idx) < FScore.FindRef(Current))
-                Current = Idx;
-        }
-
-        if (Current == EndIdx)
-        {
-            return ReconstructPath(CameFrom, Current);
-        }
-
-        OpenSet.Remove(Current);
-        ClosedSet.Add(Current);
-
-        for (const FIntPoint& Neighbor : GetNeighbors(Current))
-        {
-            if (ClosedSet.Contains(Neighbor)) continue;
-
-            ANodeActor* NeighborNode = Grid[Neighbor.X + Neighbor.Y * GridSizeX];
-            if (!NeighborNode || !NeighborNode->bIsWalkable) continue;
-
-            float TentativeG = GScore.FindRef(Current) + 1.f;  // Uniform cost.
-
-            if (!OpenSet.Contains(Neighbor))
-            {
-                OpenSet.Add(Neighbor);
-            }
-            else if (TentativeG >= GScore.FindRef(Neighbor))
-            {
-                continue;
-            }
-
-            CameFrom.Add(Neighbor, Current);
-            GScore.Add(Neighbor, TentativeG);
-            FScore.Add(Neighbor, TentativeG + Heuristic(Neighbor, EndIdx));
-        }
-    }
-
-    return EmptyPath;  // No path found.
-}
 
 // =============================================================
 // PATHFINDING HELPERS
@@ -252,7 +221,7 @@ TArray<FIntPoint> AGridManager::ReconstructPath(TMap<FIntPoint, FIntPoint>& Came
     while (CameFrom.Contains(Current))
     {
         Current = CameFrom[Current];
-        Path.Insert(Current, 0);
+        Path.Insert(Current, 0);  // Build in reverse.
     }
 
     return Path;
@@ -269,7 +238,7 @@ TArray<FIntPoint> AGridManager::GetNeighbors(const FIntPoint& Idx) const
 {
     TArray<FIntPoint> Neighbors;
     const int32 DirsX[] = { -1, 1, 0, 0 };
-    const int32 DirsY[] = { 0, 0, -1, 1 };  // Fixed: Was -2,2 – assuming typo, changed to standard 4-way.
+    const int32 DirsY[] = { 0, 0, -1, 1 };
 
     for (int32 i = 0; i < 4; ++i)
     {

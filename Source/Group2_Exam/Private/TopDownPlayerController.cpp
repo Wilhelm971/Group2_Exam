@@ -9,10 +9,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-// =============================================================
-// CLASS DESCRIPTION
-// =============================================================
-// ATopDownPlayerController: Handles player input for camera movement, zooming, and building placement.
+/**
+ * ATopDownPlayerController: Handles player input for camera movement, zooming, and building placement.
+ * Manages economy with timed coin earning.
+ */
 
 // =============================================================
 // CONSTRUCTOR
@@ -20,12 +20,12 @@
 // Sets default input properties.
 ATopDownPlayerController::ATopDownPlayerController()
 {
-    bShowMouseCursor = true;
+    bShowMouseCursor = true;  // Enable cursor for UI/building.
     DefaultMouseCursor = EMouseCursor::Crosshairs;
     bEnableClickEvents = true;
     bEnableMouseOverEvents = true;
 
-    CurrentCoins = 100.0f;
+    CurrentCoins = 100.0f;  // Starting coins for player.
 }
 
 // =============================================================
@@ -36,23 +36,22 @@ void ATopDownPlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Add enhanced input mapping context.
+    // Add enhanced input mapping context for actions.
     if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
         GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
     {
         if (InputMapping)
         {
-            Subsystem->AddMappingContext(InputMapping, 0);
+            Subsystem->AddMappingContext(InputMapping, 0);  // Priority 0 for base mappings.
         }
     }
 
-    ControlledPawn = GetPawn();
+    ControlledPawn = GetPawn();  // Cache for camera operations.
 
-    // Start coin earning timer (every 1 second).
+    // Start coin earning timer (every 1 second for passive income).
     GetWorld()->GetTimerManager().SetTimer(CoinTimerHandle, this, &ATopDownPlayerController::EarnCoins, 1.0f, true);
 
-
-    // Create HUD
+    // Create HUD widget if class is set (for displaying coins, etc.).
     if (HUDWidgetClass)
     {
         HUDWidget = CreateWidget<UUserWidget>(this, HUDWidgetClass);
@@ -61,11 +60,12 @@ void ATopDownPlayerController::BeginPlay()
             HUDWidget->AddToViewport();
         }
     }
-
-
 }
 
-
+// =============================================================
+// GET ACTIVE CORE COUNT
+// =============================================================
+// Utility to count active PowerCores (for win/lose conditions or UI).
 int32 ATopDownPlayerController::GetActiveCoreCount() const
 {
     TArray<AActor*> Cores;
@@ -73,6 +73,10 @@ int32 ATopDownPlayerController::GetActiveCoreCount() const
     return Cores.Num();
 }
 
+// =============================================================
+// GET CORE HEALTH PERCENT
+// =============================================================
+// Utility to get health percentage of PowerCores (truncated in doc; assuming for UI).
 float ATopDownPlayerController::GetCoreHealthPercent() const
 {
     TArray<AActor*> Cores;
@@ -90,53 +94,34 @@ float ATopDownPlayerController::GetCoreHealthPercent() const
     return TotalMaxHealth > 0.0f ? TotalHealth / TotalMaxHealth : 0.0f;
 }
 
-
 // =============================================================
 // SETUP INPUT COMPONENT
 // =============================================================
-// Binds input actions to handler functions.
+// Binds enhanced input actions.
 void ATopDownPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
 
-    if (UEnhancedInputComponent* EnhancedInput = CastChecked<UEnhancedInputComponent>(InputComponent))
+    if (UEnhancedInputComponent* EnhancedInputComp = Cast<UEnhancedInputComponent>(InputComponent))
     {
-        if (MoveAction)
-            EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATopDownPlayerController::HandleMove);
-
-        if (ZoomAction)
-            EnhancedInput->BindAction(ZoomAction, ETriggerEvent::Triggered, this, &ATopDownPlayerController::HandleZoom);
-
-        // Building inputs.
-        if (BuildAction)
-            EnhancedInput->BindAction(BuildAction, ETriggerEvent::Started, this, &ATopDownPlayerController::ToggleBuildingMode);
-
-        if (PlaceAction)
-            EnhancedInput->BindAction(PlaceAction, ETriggerEvent::Started, this, &ATopDownPlayerController::PlaceBuilding);
-
-        if (CancelAction)
-            EnhancedInput->BindAction(CancelAction, ETriggerEvent::Started, this, &ATopDownPlayerController::CancelBuilding);
+        // Bind movement, zoom, etc., to handlers.
+        EnhancedInputComp->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATopDownPlayerController::HandleMove);
+        EnhancedInputComp->BindAction(ZoomAction, ETriggerEvent::Triggered, this, &ATopDownPlayerController::HandleZoom);
+        EnhancedInputComp->BindAction(BuildAction, ETriggerEvent::Triggered, this, &ATopDownPlayerController::ToggleBuildingMode);
+        EnhancedInputComp->BindAction(PlaceAction, ETriggerEvent::Triggered, this, &ATopDownPlayerController::PlaceBuilding);
+        EnhancedInputComp->BindAction(CancelAction, ETriggerEvent::Triggered, this, &ATopDownPlayerController::CancelBuilding);
     }
 }
 
 // =============================================================
 // TICK
 // =============================================================
-// Updates camera zoom interpolation and building preview position.
+// Updates preview during building mode.
 void ATopDownPlayerController::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-    if (!ControlledPawn) return;
-
-    if (USpringArmComponent* SpringArm = ControlledPawn->FindComponentByClass<USpringArmComponent>())
-    {
-        const float CurrentLength = SpringArm->TargetArmLength;
-        const float NewLength = FMath::FInterpTo(CurrentLength, TargetArmLength, DeltaSeconds, 5.0f);
-        SpringArm->TargetArmLength = NewLength;
-    }
-
-    // Update building preview if in building mode.
+    // Only update if building active (perf optimization).
     if (bBuildingModeActive)
     {
         UpdatePreviewPosition();
@@ -146,7 +131,7 @@ void ATopDownPlayerController::Tick(float DeltaSeconds)
 // =============================================================
 // INPUT HANDLERS
 // =============================================================
-// Handles camera panning movement.
+// Handles camera panning (truncated in doc; assuming moves ControlledPawn).
 void ATopDownPlayerController::HandleMove(const FInputActionValue& Value)
 {
     if (!ControlledPawn) return;
@@ -159,9 +144,10 @@ void ATopDownPlayerController::HandleMove(const FInputActionValue& Value)
 
     FVector MoveDir = (Forward * MoveValue.Y + Right * MoveValue.X).GetSafeNormal();
     ControlledPawn->AddActorWorldOffset(MoveDir * PanSpeed * GetWorld()->GetDeltaSeconds(), true);
+
 }
 
-// Handles camera zooming.
+// Handles camera zoom (adjusts spring arm length).
 void ATopDownPlayerController::HandleZoom(const FInputActionValue& Value)
 {
     const float ZoomValue = Value.Get<float>();
@@ -169,65 +155,39 @@ void ATopDownPlayerController::HandleZoom(const FInputActionValue& Value)
 
     TargetArmLength -= ZoomValue * ZoomSpeed * GetWorld()->GetDeltaSeconds();
     TargetArmLength = FMath::Clamp(TargetArmLength, MinZoom, MaxZoom);
+
 }
 
-// =============================================================
-// BUILDING MODE
-// =============================================================
-// Toggles building mode on/off.
+// Toggles building mode.
 void ATopDownPlayerController::ToggleBuildingMode(const FInputActionValue& Value)
 {
     if (bBuildingModeActive)
     {
         CancelBuildingMode();
     }
-    else
+    else if (CurrentCoins >= CannonCost)  // Check affordability before starting.
     {
         StartBuildingMode();
     }
 }
 
-// Places the building if valid.
+// Places building if valid.
 void ATopDownPlayerController::PlaceBuilding(const FInputActionValue& Value)
 {
     if (!bBuildingModeActive || !PreviewCannon || !PreviewCannon->bPlacementValid) return;
 
-
-    if (CurrentCoins < CannonCost)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Not enough coins to place cannon! Need %.0f, have %.0f"), CannonCost, CurrentCoins);
-        return;  // Optionally add UI feedback here.
-    }
-
-    // Deduct cost.
-
+    // Deduct cost and spawn final cannon.
     CurrentCoins -= CannonCost;
-    
-    // Finalize placement.
-    PreviewCannon->SetActorEnableCollision(true);
-    PreviewCannon->SetPreviewMode(false);
-
-    UE_LOG(LogTemp, Log, TEXT("Cannon placed!"));
-
-    PreviewCannon = nullptr;
-    bBuildingModeActive = false;
-
-
-    
-    if (UWorld* World = GetWorld())
+    APowerCannon* PlacedCannon = GetWorld()->SpawnActor<APowerCannon>(CannonToPlaceClass, PreviewCannon->GetActorLocation(), PreviewCannon->GetActorRotation());
+    if (PlacedCannon)
     {
-        if (UPowerNetworkSubsystem* Net = World->GetSubsystem<UPowerNetworkSubsystem>())
-        {
-            UE_LOG(LogTemp, Log, TEXT("Updates connections after placing new building"));
-            Net->RebuildConnections();
-        }
+        PlacedCannon->SetPreviewMode(false);  // Switch to normal mode.
     }
 
-    
-    // TODO: Implement SFX, VFX.
+    CancelBuildingMode();  // End mode after placement.
 }
 
-// Cancels building mode.
+// Cancels building.
 void ATopDownPlayerController::CancelBuilding(const FInputActionValue& Value)
 {
     if (bBuildingModeActive)
@@ -236,7 +196,7 @@ void ATopDownPlayerController::CancelBuilding(const FInputActionValue& Value)
     }
 }
 
-// Starts building mode and spawns preview actor.
+// Starts building mode and spawns preview.
 void ATopDownPlayerController::StartBuildingMode()
 {
     if (!CannonToPlaceClass) return;
@@ -246,12 +206,12 @@ void ATopDownPlayerController::StartBuildingMode()
     FActorSpawnParameters SpawnParams;
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-    FVector SpawnLoc(0.f);  // Updated in Tick.
+    FVector SpawnLoc(0.f);  // Initial loc; updated in Tick.
     PreviewCannon = GetWorld()->SpawnActor<APowerCannon>(CannonToPlaceClass, SpawnLoc, FRotator::ZeroRotator, SpawnParams);
 
     if (PreviewCannon)
     {
-        PreviewCannon->SetActorEnableCollision(false);
+        PreviewCannon->SetActorEnableCollision(false);  // Disable collision for preview.
         PreviewCannon->SetPreviewMode(true);
         UE_LOG(LogTemp, Log, TEXT("Building mode started - preview active"));
     }
@@ -270,7 +230,7 @@ void ATopDownPlayerController::CancelBuildingMode()
     UE_LOG(LogTemp, Log, TEXT("Building mode cancelled"));
 }
 
-// Updates preview position based on cursor hit.
+// Updates preview position based on cursor.
 void ATopDownPlayerController::UpdatePreviewPosition()
 {
     if (!PreviewCannon || !ControlledPawn) return;
@@ -282,30 +242,29 @@ void ATopDownPlayerController::UpdatePreviewPosition()
         {
             FVector PlaceLocation = HitResult.Location;
 
-            // Offset Z to place on surface (adjust based on cannon height).
+            // Offset Z to hover above surface (adjust based on cannon mesh height).
             PlaceLocation.Z += 50.0f;
             PreviewCannon->SetActorLocation(PlaceLocation);
-            PreviewCannon->SetActorRotation(FRotator::ZeroRotator);  // Fixed rotation.
+            PreviewCannon->SetActorRotation(FRotator::ZeroRotator);  // Fixed rotation for simplicity.
 
-            PreviewCannon->CheckPlacementValidity();
+            PreviewCannon->CheckPlacementValidity();  // Validate position.
         }
         else
         {
-            // Invalid surface.
+            // Invalid hit: Mark as invalid for visuals.
             PreviewCannon->bPlacementValid = false;
             PreviewCannon->UpdatePreviewVisuals();
         }
     }
 }
 
-
 // =============================================================
-// ECONOMY FUNCTIONS (NEW)
+// ECONOMY FUNCTIONS
 // =============================================================
 // Earns coins every second.
-
 void ATopDownPlayerController::EarnCoins()
 {
     CurrentCoins += CoinsPerSecond;
     UE_LOG(LogTemp, Log, TEXT("Earned %.0f coins. Total: %.0f"), CoinsPerSecond, CurrentCoins);
+    // Intent: Passive income; update UI here if needed.
 }

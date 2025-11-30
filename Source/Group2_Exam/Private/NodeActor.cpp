@@ -1,4 +1,3 @@
-
 #include "NodeActor.h"
 #include "Components/TextRenderComponent.h"
 #include "PowerCannon.h"
@@ -6,13 +5,14 @@
 #include "Components/BoxComponent.h"
 #include "Interfaces/IPluginManager.h"
 
+// Globals for overlap (avoid; consider manager class instead).
 APowerCannon* PowerCannon;
 AEnemyCharacter* EnemyCharacter;
-// =============================================================
-// CLASS DESCRIPTION
-// =============================================================
-// ANodeActor: Represents a single node in the grid system.
-// Used for pathfinding and grid-based navigation.
+
+/**
+ * ANodeActor: Represents a single node in the grid system.
+ * Used for pathfinding and grid-based navigation.
+ */
 
 // =============================================================
 // CONSTRUCTOR
@@ -20,111 +20,118 @@ AEnemyCharacter* EnemyCharacter;
 // Sets default values.
 ANodeActor::ANodeActor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	// Enable ticking if needed for dynamic updates.
-	PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = false;  // Static node; no updates.
 
-	TileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TileMesh"));
-	SetRootComponent(TileMesh);
+    TileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TileMesh"));
+    SetRootComponent(TileMesh);
 
-	TileMesh->SetMobility(EComponentMobility::Static);
-	TileMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	TileMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	TileMesh->SetCollisionResponseToChannel(ECC_Visibility, ECollisionResponse::ECR_Block);
-	TileMesh->bHiddenInGame = false;
+    TileMesh->SetMobility(EComponentMobility::Static);
+    TileMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    TileMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+    TileMesh->SetCollisionResponseToChannel(ECC_Visibility, ECollisionResponse::ECR_Block);
+    TileMesh->bHiddenInGame = false;  // Visible for debugging.
 
-	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollider"));
-	CollisionBox->SetupAttachment(TileMesh);
-	CollisionBox->SetGenerateOverlapEvents(true);
-	CollisionBox->SetMobility(EComponentMobility::Static);
+    CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollider"));
+    CollisionBox->SetupAttachment(TileMesh);
+    CollisionBox->SetGenerateOverlapEvents(true);
+    CollisionBox->SetMobility(EComponentMobility::Static);
 
-	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ANodeActor::OnCollisionOverlap);
-	CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ANodeActor::OnCollisionEnd);
+    // Bind overlap events.
+    CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ANodeActor::OnCollisionOverlap);
+    CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ANodeActor::OnCollisionEnd);
 }
 
+// Applies initial state on construction.
 void ANodeActor::OnConstruction(const FTransform& Transform)
 {
-	Super::OnConstruction(Transform);
+    Super::OnConstruction(Transform);
 
-	if (!DynamicMaterial)
-	{
-		DynamicMaterial = UMaterialInstanceDynamic::Create(TileMesh->GetMaterial(0), this);
-		TileMesh->SetMaterial(0, DynamicMaterial);
-	}
+    if (!DynamicMaterial)
+    {
+        DynamicMaterial = UMaterialInstanceDynamic::Create(TileMesh->GetMaterial(0), this);
+        TileMesh->SetMaterial(0, DynamicMaterial);
+    }
 
-	SetState(bIsWalkable ? ENodeState::Default : ENodeState::Blocked);
+    // Set initial state based on walkability.
+    SetState(bIsWalkable ? ENodeState::Default : ENodeState::Blocked);
 }
 
+// Applies color via material param.
 void ANodeActor::ApplyColor(const FLinearColor& Color)
 {
-	if (DynamicMaterial)
-	{
-		DynamicMaterial->SetVectorParameterValue(TEXT("Color"), Color);
-	}
+    if (DynamicMaterial)
+    {
+        DynamicMaterial->SetVectorParameterValue(TEXT("Color"), Color);
+    }
 }
 
+// Overlap begin: Set target state if PowerCannon.
 void ANodeActor::OnCollisionOverlap(
-	UPrimitiveComponent* ColliderComp,
-	AActor* OtherActor,
-	UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex,
-	bool bFromSweep,
-	const FHitResult& SweepResult
-	)
+    UPrimitiveComponent* ColliderComp,
+    AActor* OtherActor,
+    UPrimitiveComponent* OtherComp,
+    int32 OtherBodyIndex,
+    bool bFromSweep,
+    const FHitResult& SweepResult
+    )
 {
-	if (OtherActor == PowerCannon && (OtherActor != this) && OtherComp) 
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
-		SetState(ENodeState::Target);
-	}
+    if (OtherActor == PowerCannon && (OtherActor != this) && OtherComp) 
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
+        SetState(ENodeState::Target);  // Visual feedback for placement.
+    }
 }
 
+// Overlap end: Reset to default.
 void ANodeActor::OnCollisionEnd(UPrimitiveComponent* ColliderComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex)
+    int32 OtherBodyIndex)
 {
-	if (OtherActor == PowerCannon && (OtherActor != this) && OtherComp) 
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap End"));
-		SetState(ENodeState::Default);
-	}
+    if (OtherActor == PowerCannon && (OtherActor != this) && OtherComp) 
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap End"));
+        SetState(ENodeState::Default);
+    }
 }
 
-
+// Sets state and applies color.
 void ANodeActor::SetState(ENodeState NewState)
 {
-	CurrentState = NewState;
+    CurrentState = NewState;
 
-	switch (NewState)
-	{
-	case ENodeState::Default:
-		ApplyColor(FLinearColor::White);
-		break;
-	case ENodeState::Blocked:
-		ApplyColor(FLinearColor::Red);
-		break;
-	case ENodeState::Open:
-		ApplyColor(FLinearColor::Yellow);
-		break;
-	case ENodeState::Closed:
-		ApplyColor(FLinearColor::Blue);
-		break;
-	case ENodeState::Path:
-		ApplyColor(FLinearColor::Green);
-		break;
-	case ENodeState::Start:
-		ApplyColor(FLinearColor(0, 255, 255, 255));
-		break;
-	case ENodeState::Target:
-		ApplyColor(FLinearColor(195, 115, 0, 255));
-		break;
-	default:
-		break;
-	}
+    // Color mapping for visualization (intent: debug pathfinding).
+    switch (NewState)
+    {
+    case ENodeState::Default:
+        ApplyColor(FLinearColor::White);
+        break;
+    case ENodeState::Blocked:
+        ApplyColor(FLinearColor::Red);
+        break;
+    case ENodeState::Open:
+        ApplyColor(FLinearColor::Yellow);
+        break;
+    case ENodeState::Closed:
+        ApplyColor(FLinearColor::Blue);
+        break;
+    case ENodeState::Path:
+        ApplyColor(FLinearColor::Green);
+        break;
+    case ENodeState::Start:
+        ApplyColor(FLinearColor(0, 255, 255, 255));  // Cyan.
+        break;
+    case ENodeState::Target:
+        ApplyColor(FLinearColor(195, 115, 0, 255));  // Orange.
+        break;
+    default:
+        break;
+    }
 }
 
+// Toggles walkability on click (editor tool).
 void ANodeActor::NotifyActorOnClicked(FKey ButtonPressed)
 {
-	Super::NotifyActorOnClicked(ButtonPressed);
+    Super::NotifyActorOnClicked(ButtonPressed);
 
-	bIsWalkable = !bIsWalkable;
-	SetState(bIsWalkable ? ENodeState::Default : ENodeState::Blocked);
+    bIsWalkable = !bIsWalkable;
+    SetState(bIsWalkable ? ENodeState::Default : ENodeState::Blocked);
 }

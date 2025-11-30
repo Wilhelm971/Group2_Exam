@@ -5,18 +5,17 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 
-// =============================================================
-// CLASS DESCRIPTION
-// =============================================================
-// ADormantPowerCores: Accumulates power from the network.
-// When threshold is reached, consumes the power, spawns a PowerCore, and destroys itself.
+/**
+ * ADormantPowerCores: Accumulates power from the network.
+ * When threshold is reached, consumes the power, spawns a PowerCore, and destroys itself.
+ */
 
 // =============================================================
 // CONSTRUCTOR
 // =============================================================
 ADormantPowerCores::ADormantPowerCores()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = false;  // Accumulation via ReceivePowerAmount.
 
     // Create mesh component.
     DormantMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DormantMesh"));
@@ -34,7 +33,7 @@ ADormantPowerCores::ADormantPowerCores()
         DormantStaticMeshAsset = MeshAsset.Object;
     }
 
-    // Load a default material (optional; set in BP or here, e.g., a dim/grey version).
+    // Load default material (optional; set in BP).
     // static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialAsset(TEXT("/Path/To/DormantMaterial.DormantMaterial"));
     // if (MaterialAsset.Succeeded()) { DormantMaterial = MaterialAsset.Object; }
 }
@@ -75,7 +74,7 @@ void ADormantPowerCores::ReceivePowerAmount(float Amount)
 
     if (AccumulatedPower >= ActivationThreshold)
     {
-        AccumulatedPower -= ActivationThreshold;
+        AccumulatedPower -= ActivationThreshold;  // Consume for activation.
         Activate();
     }
 }
@@ -87,7 +86,7 @@ void ADormantPowerCores::Activate()
 {
     if (!GetWorld()) return;
 
-    // Spawn active PowerCore.
+    // Spawn active PowerCore at same location.
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
@@ -97,16 +96,16 @@ void ADormantPowerCores::Activate()
         UE_LOG(LogTemp, Log, TEXT("DormantPowerCores activated to PowerCore at %s"), *NewCore->GetActorLocation().ToString());
     }
 
-    // Destroy this dormant core (EndPlay will unregister).
+    // Destroy self (EndPlay unregisters).
     Destroy();
 
-    // Rebuild network connections after change.
+    // Rebuild network after change.
     if (UPowerNetworkSubsystem* Net = GetWorld()->GetSubsystem<UPowerNetworkSubsystem>())
     {
         Net->RebuildConnections();
     }
 
-    // Check win condition.
+    // Check if activation leads to win.
     CheckWinCondition();
 }
 

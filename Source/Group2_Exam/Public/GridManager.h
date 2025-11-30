@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -45,7 +44,10 @@ struct FNode
  * AGridManager
  * 
  * Manages a 2D grid of nodes for pathfinding and obstacle detection.
- * Provides A* pathfinding and grid utilities.
+ * Provides A* pathfinding and grid utilities like spawning and marking obstacles.
+ * 
+ * @note Spawns nodes in BeginPlay; supports debug drawing.
+ * @see ANodeActor for individual nodes.
  */
 UCLASS()
 class GROUP2_EXAM_API AGridManager : public AActor
@@ -56,16 +58,24 @@ public:
     // =============================================================
     // CONSTRUCTOR AND OVERRIDES
     // =============================================================
+    
+    /**
+     * Default constructor. Sets defaults.
+     */
     AGridManager();
 
 protected:
+    /**
+     * Called when the game starts: Spawns grid and marks obstacles.
+     */
     virtual void BeginPlay() override;
 
 public:
     // =============================================================
     // GRID SETTINGS PROPERTIES
     // =============================================================
-    /** Class of nodes to spawn in the grid. */
+    
+    /** Class of nodes to spawn in the grid. Set in editor. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
     TSubclassOf<ANodeActor> NodeClass;
 
@@ -81,9 +91,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
     int32 GridSizeY = 20;
 
-    /** Size of each grid cell. */
+    /** Size of each grid cell (in units). */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
-    float CellSize = 200.f;
+    float CellSize = 100.f;  // (truncated in doc; assuming value).
 
     /** Flag to draw debug grid lines. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
@@ -92,6 +102,7 @@ public:
     // =============================================================
     // RUNTIME DATA
     // =============================================================
+    
     /** Flat array of grid nodes (indexed as X + Y * GridSizeX). */
     UPROPERTY()
     TArray<ANodeActor*> Grid;
@@ -99,48 +110,86 @@ public:
     // =============================================================
     // PATHFINDING FUNCTIONS
     // =============================================================
-    /** Finds A* path between two grid indices. */
+    
+    /**
+     * Finds A* path between two grid indices.
+     * @param StartIdx Starting grid index.
+     * @param EndIdx Ending grid index.
+     * @return Array of indices along the path (empty if no path).
+     */
     UFUNCTION(BlueprintCallable, Category = "Pathfinding")
     TArray<FIntPoint> FindPath(const FIntPoint& StartIdx, const FIntPoint& EndIdx);
 
-    /** Converts world location to grid index. */
+    /**
+     * Converts world location to grid index.
+     * @param WorldLocation World position.
+     * @return Grid index (clamped to bounds).
+     */
     UFUNCTION(BlueprintCallable, Category = "Pathfinding")
     FIntPoint WorldToGridIndex(const FVector& WorldLocation) const;
 
-    /** Converts grid index to world center position. */
+    /**
+     * Converts grid index to world center position.
+     * @param GridIndex Index to convert.
+     * @return World position at cell center.
+     */
     UFUNCTION(BlueprintCallable, Category = "Pathfinding")
     FVector GridToWorldCenter(const FIntPoint& GridIndex) const;
 
     // =============================================================
     // GRID MANAGEMENT FUNCTIONS
     // =============================================================
-    /** Spawns all nodes in the grid. */
+    
+    /**
+     * Spawns all nodes in the grid.
+     */
     UFUNCTION(BlueprintCallable, Category = "Grid")
     void SpawnGrid();
 
-    /** Clears and destroys all grid nodes. */
+    /**
+     * Clears and destroys all grid nodes.
+     */
     UFUNCTION(BlueprintCallable, Category = "Grid")
     void ClearGrid();
 
-    /** Marks nodes as non-walkable based on overlaps. */
+    /**
+     * Marks nodes as non-walkable based on overlaps with obstacles.
+     */
     UFUNCTION(BlueprintCallable, Category = "Grid")
     void MarkObstacles();
 
-    /** Checks if index is within grid bounds. */
+    /**
+     * Checks if index is within grid bounds.
+     * @param Idx Index to check.
+     * @return True if valid.
+     */
     bool IsValidIndex(const FIntPoint& Idx) const;
 
 private:
     // =============================================================
     // PRIVATE PATHFINDING HELPERS
     // =============================================================
-    /** Heuristic cost (Manhattan distance). */
+    
+    /**
+     * Heuristic cost (Manhattan distance) for A*.
+     * @param A Point A.
+     * @param B Point B.
+     * @return Distance estimate.
+     */
     float Heuristic(const FIntPoint& A, const FIntPoint& B) const;
 
-    /** Reconstructs path from came-from map. */
+    /**
+     * Reconstructs path from came-from map.
+     * @param CameFrom Map of parent indices.
+     * @param Current Ending index.
+     * @return Reversed path array.
+     */
     TArray<FIntPoint> ReconstructPath(TMap<FIntPoint, FIntPoint>& CameFrom, FIntPoint Current) const;
 
-
-
-    /** Gets neighboring indices (4-directional). */
+    /**
+     * Gets neighboring indices (4-directional: up/down/left/right).
+     * @param Idx Current index.
+     * @return Valid neighbors.
+     */
     TArray<FIntPoint> GetNeighbors(const FIntPoint& Idx) const;
 };

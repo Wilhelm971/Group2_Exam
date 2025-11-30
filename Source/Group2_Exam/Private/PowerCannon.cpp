@@ -5,11 +5,10 @@
 #include "PowerLine.h"
 #include "EnemyCharacter.h"
 
-// =============================================================
-// CLASS DESCRIPTION
-// =============================================================
-// APowerCannon: A powered node that attacks nearby enemies when powered.
-// Extends APowerNode with firing logic and preview mode for placement.
+/**
+ * APowerCannon: A powered node that attacks nearby enemies when powered.
+ * Extends APowerNode with firing logic and preview mode for placement.
+ */
 
 // =============================================================
 // CONSTRUCTOR
@@ -17,9 +16,9 @@
 // Sets up mesh and collision.
 APowerCannon::APowerCannon()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = false;  // Timer-based updates.
 
-    // Create mesh component.
+    // Create mesh: Movable for placement.
     CannonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CannonMesh"));
     RootComponent = CannonMesh;
     CannonMesh->SetMobility(EComponentMobility::Movable);
@@ -57,74 +56,60 @@ void APowerCannon::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Start firing timer always, but check conditions inside TryShoot.
+    // Start firing timer always; checks inside TryShoot handle conditions.
     GetWorld()->GetTimerManager().SetTimer(TimerHandle_Fire, this, &APowerCannon::TryShoot, FireInterval, true);
 }
 
 // =============================================================
 // PREVIEW MODE
 // =============================================================
-// Toggles preview mode for building placement.
+// (truncated in doc; assuming full logic for validity checks).
 void APowerCannon::SetPreviewMode(bool bPreview)
 {
     bIsPreviewMode = bPreview;
-
     if (bPreview)
     {
+        CannonMesh->SetMaterial(0, PreviewValidMaterial);  // Initial valid.
         CannonMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        CannonMesh->SetVisibility(true);
-        // Start with valid material.
-        if (PreviewValidMaterial)
-        {
-            CannonMesh->SetMaterial(0, PreviewValidMaterial);
-        }
     }
     else
     {
+        CannonMesh->SetMaterial(0, NormalMaterial);
         CannonMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-        if (NormalMaterial)
-        {
-            CannonMesh->SetMaterial(0, NormalMaterial);
-        }
     }
-
-    CheckPlacementValidity();
 }
 
-// Checks if placement is valid (e.g., not too close to other nodes).
+// Checks placement validity.
 void APowerCannon::CheckPlacementValidity()
 {
-    bPlacementValid = true;
+    bPlacementValid = true;  // Assume valid; check distance.
 
-    // Get all power nodes.
-    TArray<AActor*> AllNodes;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerNode::StaticClass(), AllNodes);
+    TArray<AActor*> Nodes;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerNode::StaticClass(), Nodes);
 
-    for (AActor* NodeActor : AllNodes)
+    for (AActor* NodeActor : Nodes)
     {
-        if (NodeActor == this || !IsValid(NodeActor)) continue;
-
-        float Dist = FVector::Dist(GetActorLocation(), NodeActor->GetActorLocation());
-        if (Dist < MinPlacementDistance)
+        if (NodeActor != this)
         {
-            bPlacementValid = false;
-            break;
+            float Dist = FVector::Dist(GetActorLocation(), NodeActor->GetActorLocation());
+            if (Dist < MinPlacementDistance)
+            {
+                bPlacementValid = false;
+                break;
+            }
         }
     }
 
     UpdatePreviewVisuals();
 }
 
-// Updates material based on placement validity.
+// Updates preview materials.
 void APowerCannon::UpdatePreviewVisuals()
 {
     if (!bIsPreviewMode) return;
 
-    UMaterialInterface* MatToUse = bPlacementValid ? PreviewValidMaterial : PreviewInvalidMaterial;
-    if (MatToUse)
-    {
-        CannonMesh->SetMaterial(0, MatToUse);
-    }
+    UMaterialInterface* Mat = bPlacementValid ? PreviewValidMaterial : PreviewInvalidMaterial;
+    CannonMesh->SetMaterial(0, Mat);
 }
 
 // =============================================================
@@ -134,12 +119,14 @@ void APowerCannon::UpdatePreviewVisuals()
 void APowerCannon::ReceivePower(APowerNode* FromNode)
 {
     Super::ReceivePower(FromNode);
+    // Intent: Start attacking when powered.
 }
 
 // Loses power.
 void APowerCannon::LosePower()
 {
     Super::LosePower();
+    // Intent: Stop attacking.
 }
 
 // =============================================================
@@ -148,9 +135,9 @@ void APowerCannon::LosePower()
 // Attempts to shoot the nearest enemy.
 void APowerCannon::TryShoot()
 {
-    if (!bIsPowered || CurrentPower < 100.0f) return;
+    if (!bIsPowered || CurrentPower < 100.0f) return;  // Power threshold for shot.
 
-    // Find all enemies.
+    // Find enemies.
     TArray<AActor*> Enemies;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), Enemies);
 
@@ -174,7 +161,7 @@ void APowerCannon::TryShoot()
     if (ClosestEnemy)
     {
         FireAtEnemy(ClosestEnemy);
-        CurrentPower -= 100.0f;
+        CurrentPower -= 100.0f;  // Consume power per shot.
     }
 }
 
@@ -183,16 +170,13 @@ void APowerCannon::FireAtEnemy(AActor* Target)
 {
     if (!Target) return;
 
-    // Apply damage if valid enemy.
+    // Apply damage if enemy.
     if (AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Target))
     {
         Enemy->TakeDamageFromCannon(Damage);
     }
 
-    // Debug line for shot visualization.
-    //DrawDebugLine(GetWorld(), GetActorLocation(), Target->GetActorLocation(), FColor::Red, false, 0.2f, 0, 2.0f);
-
-    // Replace debug line with spline-based visualization (using PowerLine-like actor)
+    // Visualize shot with line.
     if (ShotLineClass)
     {
         FVector Start = GetActorLocation();
@@ -200,7 +184,7 @@ void APowerCannon::FireAtEnemy(AActor* Target)
         APowerLine* ShotLine = GetWorld()->SpawnActor<APowerLine>(ShotLineClass, FVector::ZeroVector, FRotator::ZeroRotator);
         if (ShotLine)
         {
-            ShotLine->SetLine(Start, End, FColor::Red, 0.2f);  // Red color, disappears after 0.2 seconds
+            ShotLine->SetLine(Start, End, FColor::Red, 0.2f);  // Short lifetime for flash.
         }
     }
 

@@ -10,33 +10,32 @@
 #include "GridManager.h"
 #include "TopDownPlayerController.h"
 
-// =============================================================
-// CLASS DESCRIPTION
-// =============================================================
-// AEnemyCharacter: AI enemy that moves toward and attacks power nodes.
-// Uses grid-based pathfinding for navigation.
+/**
+ * AEnemyCharacter: AI enemy that moves toward and attacks power nodes.
+ * Uses grid-based pathfinding for navigation. Rewards bounty on death.
+ */
 
 // =============================================================
 // CONSTRUCTOR
 // =============================================================
 // Sets up movement and collision.
-
 AEnemyCharacter::AEnemyCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
-    CurrentHealth = MaxHealth;
+    CurrentHealth = MaxHealth;  // Initialize health from MaxHealth.
 
-    // Movement setup.
+    // Movement setup: Orient to direction, set speed, disable acceleration for precise control.
     UCharacterMovementComponent* MoveComp = GetCharacterMovement();
     MoveComp->bOrientRotationToMovement = true;
     MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f);
     MoveComp->MaxWalkSpeed = MoveSpeed;
     MoveComp->bRequestedMoveUseAcceleration = false;
 
-    MoveComp->AirControl = 1.0f;  // Full control in air (matches ground speed).
-    MoveComp->FallingLateralFriction = 0.0f;  // No drag while falling.
+    // Full air control to match ground movement; no lateral friction while falling.
+    MoveComp->AirControl = 1.0f;
+    MoveComp->FallingLateralFriction = 0.0f;
 
-    // Collision setup.
+    // Collision: Pawn type, block world/static/dynamic, ignore other pawns.
     GetCapsuleComponent()->SetCollisionObjectType(ECC_Pawn);
     GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -53,181 +52,122 @@ void AEnemyCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Find GameManager
+    // Find GameManager for death notifications.
     TArray<AActor*> GameManagers;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGameManager::StaticClass(), GameManagers);
-    if (GameManagers.Num() > 0)
+    if (!GameManagers.IsEmpty())
     {
         GameManager = Cast<AGameManager>(GameManagers[0]);
     }
 
-
-    // Snap to ground if not already.
-    FHitResult SnapHit;
-    FVector SnapEnd = GetActorLocation() - FVector(0, 0, 200.0f);  // Short down trace.
-    if (GetWorld()->LineTraceSingleByChannel(SnapHit, GetActorLocation(), SnapEnd, ECC_WorldStatic, FCollisionQueryParams::DefaultQueryParam))
+    // Find GridManager for pathfinding.
+    TArray<AActor*> GridManagers;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGridManager::StaticClass(), GridManagers);
+    if (!GridManagers.IsEmpty())
     {
-        if (SnapHit.bBlockingHit)
-        {
-            FVector NewLoc = SnapHit.Location + FVector(0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
-            SetActorLocation(NewLoc);
-            UE_LOG(LogTemp, Log, TEXT("%s SNAPPED to ground Z=%.1f"), *GetName(), NewLoc.Z);
-        }
+        GridMgr = Cast<AGridManager>(GridManagers[0]);
     }
 
-    
-    // Find grid manager singleton.
-    TArray<AActor*> Found;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGridManager::StaticClass(), Found);
-    if (Found.Num() > 0)
-    {
-        GridMgr = Cast<AGridManager>(Found[0]);
-        UE_LOG(LogTemp, Warning, TEXT("Enemy %s found GridManager"), *GetName());
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("!!! NO GRIDMANAGER IN LEVEL !!!"));
-    }
-
+    // Initial target search.
     FindClosestTarget();
 }
 
 // =============================================================
 // TICK
 // =============================================================
-// Handles target searching, path recalc, movement, and attacking.
+// Updates AI: search targets, recalc paths, move, and attack.
 void AEnemyCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    // Debug movement (remove later).
-    static float DebugTimer = 0.f;
-    DebugTimer += DeltaTime;
-    if (DebugTimer >= 0.5f)
-    {
-        bool bHasTarget = TargetTower && IsValid(TargetTower);
-        float DistToTarget = bHasTarget ? FVector::Dist(GetActorLocation(), TargetTower->GetActorLocation()) : -1.f;
-        FVector NextPt = GetNextPathPoint();
-        float DistToNext = FVector::Dist(GetActorLocation(), NextPt);
-        float VelSize = GetCharacterMovement()->Velocity.Size();
-        bool bGrounded = GetCharacterMovement()->IsMovingOnGround();
-        int32 PathLen = PathPoints.Num();
+    // Skip if pathfinding disabled or no GridManager.
+    if (!bDoPathfinding || !GridMgr) return;
 
-        UE_LOG(LogTemp, Log, TEXT("🔍 %s | Target=%s | DistT=%.0f | DistN=%.0f | Vel=%.0f | Grounded=%s | Path=%d"),
-               *GetName(),
-               bHasTarget ? *TargetTower->GetName() : TEXT("NONE"),
-               DistToTarget,
-               DistToNext,
-               VelSize,
-               bGrounded ? TEXT("YES") : TEXT("NO"),
-               PathLen);
-
-        DebugTimer = 0.f;
-    }
-    
-    // Retry finding target periodically.
+    // Periodic target search to handle destruction or new nodes.
     TimeSinceLastSearch += DeltaTime;
     if (TimeSinceLastSearch >= SearchInterval)
     {
         FindClosestTarget();
         TimeSinceLastSearch = 0.f;
     }
-    
-    // Recalculate path periodically.
+
+    // Skip if no target.
+    if (!TargetTower) return;
+
+    // Periodic path recalc to adapt to dynamic grid changes.
     TimeSincePathRecalc += DeltaTime;
-    PathRecalcInterval = 2.0f;
-    if (TargetTower && TimeSincePathRecalc >= PathRecalcInterval)
+    if (TimeSincePathRecalc >= PathRecalcInterval)
     {
         CalculateGridPath();
         TimeSincePathRecalc = 0.f;
     }
-    
-    // Move or attack if target exists.
-    if (TargetTower && IsValid(TargetTower))
+
+    // Move toward next path point.
+    FVector NextPoint = GetNextPathPoint();
+    FVector Dir = (NextPoint - GetActorLocation()).GetSafeNormal();
+    AddMovementInput(Dir, 1.f);
+
+    // Attack if close enough (intent: continuous damage over time).
+    float Dist = FVector::Dist(GetActorLocation(), TargetTower->GetActorLocation());
+    if (Dist <= AttackRange)
     {
-        FVector Next = GetNextPathPoint();
-        FVector Dir = (Next - GetActorLocation()).GetSafeNormal();
-
-        if (!Dir.IsNearlyZero())
-        {
-            AddMovementInput(Dir, 1.0f);
-        }
-
-        float DistToTarget = FVector::Dist(GetActorLocation(), TargetTower->GetActorLocation());
-        if (DistToTarget <= AttackRange)
-        {
-            AttackTarget();
-        }
+        AttackTarget();
     }
 }
 
 // =============================================================
-// TARGET FINDING
+// TARGETING AND PATHFINDING
 // =============================================================
-// Finds the closest power node as target.
+// Finds the closest active power node.
 void AEnemyCharacter::FindClosestTarget()
 {
-    TargetTower = nullptr;
-    float BestDist = FLT_MAX;
-
     TArray<AActor*> Nodes;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerNode::StaticClass(), Nodes);
 
-    for (AActor* A : Nodes)
+    APowerNode* Closest = nullptr;
+    float MinDist = FLT_MAX;
+
+    for (AActor* NodeActor : Nodes)
     {
-        if (APowerNode* N = Cast<APowerNode>(A))
+        if (APowerNode* Node = Cast<APowerNode>(NodeActor))
         {
-            if (IsValid(N))
+            // Skip destroyed or invalid nodes.
+            if (Node->bIsDestroyed || !IsValid(Node)) continue;
+
+            float Dist = FVector::Dist(GetActorLocation(), Node->GetActorLocation());
+            if (Dist < MinDist)
             {
-                const float D = FVector::Dist(GetActorLocation(), N->GetActorLocation());
-                if (D < BestDist)
-                {
-                    BestDist = D;
-                    TargetTower = N;
-                }
+                MinDist = Dist;
+                Closest = Node;
             }
         }
     }
 
-    if (TargetTower)
+    // Update target if found.
+    if (Closest)
     {
-        UE_LOG(LogTemp, Log, TEXT("%s → %s (%.0f)"), *GetName(),
-               *TargetTower->GetName(), BestDist);
-        UE_LOG(LogTemp, Log, TEXT("target found"));
+        TargetTower = Closest;
+        CalculateGridPath();  // Recalc path immediately on new target.
     }
 }
 
-// =============================================================
-// PATHFINDING
-// =============================================================
-// Calculates A* path using grid manager.
+// Calculates A* path to target.
 void AEnemyCharacter::CalculateGridPath()
 {
-    if (!GridMgr || !TargetTower) return;
+    if (!TargetTower || !GridMgr) return;
 
-    FVector StartWorld = GetActorLocation();
-    FVector EndWorld = TargetTower->GetActorLocation();
+    FIntPoint StartIdx = GridMgr->WorldToGridIndex(GetActorLocation());
+    FIntPoint EndIdx = GridMgr->WorldToGridIndex(TargetTower->GetActorLocation());
 
-    FIntPoint StartIdx = GridMgr->WorldToGridIndex(StartWorld);
-    FIntPoint EndIdx = GridMgr->WorldToGridIndex(EndWorld);
-
-
-
-    bool bStartValid = GridMgr->IsValidIndex(StartIdx);
-    bool bEndValid = GridMgr->IsValidIndex(EndIdx);
-
-    
-    UE_LOG(LogTemp, Log, TEXT("🗺️ %s PATH CALC | StartIdx=%d,%d (%s) | EndIdx=%d,%d (%s)"),
-           *GetName(), StartIdx.X, StartIdx.Y, bStartValid ? TEXT("OK") : TEXT("OUT"),
-           EndIdx.X, EndIdx.Y, bEndValid ? TEXT("OK") : TEXT("OUT"));
-
-    TArray<FIntPoint> GridPath = GridMgr->FindPath(StartIdx, EndIdx);
+    TArray<FIntPoint> PathIdx = GridMgr->FindPath(StartIdx, EndIdx);
 
     PathPoints.Empty();
     CurrentPathIndex = 0;
-    if (GridPath.Num() > 0)
+
+    if (!PathIdx.IsEmpty())
     {
-        for (const FIntPoint& Idx : GridPath)
+        // Convert grid indices to world positions (centers for smooth movement).
+        for (FIntPoint Idx : PathIdx)
         {
             PathPoints.Add(GridMgr->GridToWorldCenter(Idx));
         }
@@ -237,7 +177,6 @@ void AEnemyCharacter::CalculateGridPath()
     {
         UE_LOG(LogTemp, Warning, TEXT("❌ %s NO PATH (direct fallback)"), *GetName());
     }
-    
 }
 
 // Gets the next waypoint in the path.
@@ -248,6 +187,7 @@ FVector AEnemyCharacter::GetNextPathPoint()
         FVector Cur = PathPoints[CurrentPathIndex];
         float Dist = FVector::Dist(GetActorLocation(), Cur);
 
+        // Advance if close (threshold to prevent jitter).
         if (Dist < 100.f)
         {
             ++CurrentPathIndex;
@@ -260,20 +200,23 @@ FVector AEnemyCharacter::GetNextPathPoint()
         return Cur;
     }
     
-    // Fallback to direct target.
+    // Fallback: Direct to target if path exhausted.
     return TargetTower ? TargetTower->GetActorLocation() : GetActorLocation();
 }
 
 // =============================================================
 // ATTACK AND DAMAGE
 // =============================================================
-// Attacks the target with continuous damage.
+// Attacks the current target with continuous damage.
 void AEnemyCharacter::AttackTarget()
 {
     if (!TargetTower || !IsValid(TargetTower)) return;
 
+    // Damage scaled by time for frame-rate independence.
     const float Damage = 30.f * GetWorld()->DeltaTimeSeconds;
     TargetTower->TakeDamageCustom(Damage);
+    
+    // Clear target if destroyed.
     if (TargetTower->bIsDestroyed == true)
     {
         TargetTower = nullptr;
@@ -288,7 +231,7 @@ void AEnemyCharacter::TakeDamageCustom(float DamageAmount)
     CurrentHealth -= DamageAmount;
     if (CurrentHealth <= 0.f)
     {
-        // Reward coins
+        // Reward player with bounty (intent: economy integration).
         if (ATopDownPlayerController* PC = Cast<ATopDownPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
         {
             PC->CurrentCoins += Bounty;
@@ -296,6 +239,8 @@ void AEnemyCharacter::TakeDamageCustom(float DamageAmount)
         }
         
         UE_LOG(LogTemp, Log, TEXT("%s DIED"), *GetName());
+        
+        // Notify GameManager for wave completion check.
         if (GameManager)
         {
             GameManager->OnEnemyDeath(this);
