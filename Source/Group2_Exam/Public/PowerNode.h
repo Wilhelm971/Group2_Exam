@@ -3,11 +3,10 @@
 #include "CoreMinimal.h"
 #include "W_HealthBar.h"
 #include "GameFramework/Actor.h"
-#include "EnemyCharacter.h"
+//#include "EnemyCharacter.h"
 #include "PowerNode.generated.h"
 
-class APowerNode;  // Forward declaration for ReceivePower parameter
-
+class AEnemyCharacter;
 /**
  * APowerNode
  * 

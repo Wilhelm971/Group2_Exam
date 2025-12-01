@@ -6,9 +6,9 @@
 #include "GameFramework/Character.h"
 #include "EnemyCharacter.generated.h"
 
-class APowerNode;  // Forward declaration (replaces include)
+
 class AGridManager;  // Forward declaration (replaces include)
-class APowerNode;
+
 
 /**
  * AEnemyCharacter

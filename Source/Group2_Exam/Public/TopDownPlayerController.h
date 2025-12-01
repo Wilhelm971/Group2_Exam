@@ -157,7 +157,7 @@ public:
 
     /** Toggles building mode on/off. */
 	UFUNCTION(BlueprintCallable)
-    void ToggleBuildingMode();
+    void ToggleBuildingMode(const FInputActionValue& Value);
 
     /** Places the preview cannon if valid. */
     void PlaceBuilding(const FInputActionValue& Value);
