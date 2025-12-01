@@ -325,6 +325,26 @@ void UPowerNetworkSubsystem::ProcessVisualizationStep()
         
         FVector FromLoc = From->GetActorLocation();
         FVector CurrentLoc = Current->GetActorLocation();
+
+        // Offset to mesh center if mesh exists (assume UStaticMeshComponent named "Mesh" or similar - adjust name per your classes)
+        if (UStaticMeshComponent* FromMesh = Cast<UStaticMeshComponent>(From->GetComponentByClass(UStaticMeshComponent::StaticClass())))
+        {
+            if (UStaticMesh* FromAsset = FromMesh->GetStaticMesh())
+            {
+                FBoxSphereBounds FromBounds = FromAsset->GetBounds();
+                FromLoc += FromBounds.Origin;  // Negative offset to center
+            }
+        }
+        if (UStaticMeshComponent* CurrentMesh = Cast<UStaticMeshComponent>(Current->GetComponentByClass(UStaticMeshComponent::StaticClass())))
+        {
+            if (UStaticMesh* CurrentAsset = CurrentMesh->GetStaticMesh())
+            {
+                FBoxSphereBounds CurrentBounds = CurrentAsset->GetBounds();
+                CurrentLoc += CurrentBounds.Origin;
+            }
+        }
+
+        
         APowerLine* Line = GetWorld()->SpawnActor<APowerLine>(PowerLineClass, FVector::ZeroVector, FRotator::ZeroRotator);
         if (Line)
         {
