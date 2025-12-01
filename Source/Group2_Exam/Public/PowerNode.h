@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "W_HealthBar.h"
 #include "GameFramework/Actor.h"
+#include "EnemyCharacter.h"
 #include "PowerNode.generated.h"
 
 class APowerNode;  // Forward declaration for ReceivePower parameter
@@ -68,7 +69,13 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
     float CurrentHealth;
 
+
+
+
     // Enemy Character reference
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Enemy")
+    AEnemyCharacter* EnemyCharacter;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     bool bIsDestroyed = false;
 

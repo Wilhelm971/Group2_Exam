@@ -89,6 +89,8 @@ public:
     UPROPERTY()
     bool bDoPathfinding = true;
 
+    UPROPERTY(VisibleAnywhere)
+    bool bIsTowerDestroyed = false;
 private:
     // =============================================================
     // PRIVATE HELPERS

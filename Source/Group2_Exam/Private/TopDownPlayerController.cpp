@@ -6,6 +6,7 @@
 #include "PowerNetworkSubsystem.h"
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/Pawn.h"
+#include "MyUserWidget.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 

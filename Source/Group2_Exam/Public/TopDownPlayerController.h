@@ -3,7 +3,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "InputActionValue.h"
+#include "MyUserWidget.h"
 #include "TopDownPlayerController.generated.h"
+
 
 class UInputMappingContext;
 class UInputAction;
@@ -28,6 +30,13 @@ public:
     ATopDownPlayerController();
 
     virtual void BeginPlay() override;
+
+    UPROPERTY()
+    UMyUserWidget* MyWidgetInstance;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    TSubclassOf<UUserWidget> WidgetClass;
+
     virtual void SetupInputComponent() override;
     virtual void Tick(float DeltaSeconds) override;
 
@@ -147,7 +156,8 @@ public:
     void HandleZoom(const FInputActionValue& Value);
 
     /** Toggles building mode on/off. */
-    void ToggleBuildingMode(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+    void ToggleBuildingMode();
 
     /** Places the preview cannon if valid. */
     void PlaceBuilding(const FInputActionValue& Value);

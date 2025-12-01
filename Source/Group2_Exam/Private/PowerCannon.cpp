@@ -2,6 +2,7 @@
 #include "EnemyCharacter.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "MyHealthBar.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 #include "PowerLine.h"
