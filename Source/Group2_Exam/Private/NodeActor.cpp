@@ -8,6 +8,7 @@
 
 APowerCannon* PowerCannon;
 AEnemyCharacter* EnemyCharacter;
+APowerNode* PowerNode;
 // =============================================================
 // CLASS DESCRIPTION
 // =============================================================
