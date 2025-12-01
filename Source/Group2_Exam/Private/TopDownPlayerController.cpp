@@ -21,7 +21,7 @@
 ATopDownPlayerController::ATopDownPlayerController()
 {
     bShowMouseCursor = true;
-    DefaultMouseCursor = EMouseCursor::Crosshairs;
+    DefaultMouseCursor = EMouseCursor::Default;
     bEnableClickEvents = true;
     bEnableMouseOverEvents = true;
 
@@ -283,7 +283,8 @@ void ATopDownPlayerController::UpdatePreviewPosition()
             FVector PlaceLocation = HitResult.Location;
 
             // Offset Z to place on surface (adjust based on cannon height).
-            PlaceLocation.Z += 50.0f;
+            PlaceLocation.X -= 50.0f;
+            PlaceLocation.Y -= 50.0f;
             PreviewCannon->SetActorLocation(PlaceLocation);
             PreviewCannon->SetActorRotation(FRotator::ZeroRotator);  // Fixed rotation.
 

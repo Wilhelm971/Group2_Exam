@@ -197,6 +197,16 @@ void APowerCannon::FireAtEnemy(AActor* Target)
     {
         FVector Start = GetActorLocation();
         FVector End = Target->GetActorLocation();
+
+
+        if (UStaticMesh* CannonAsset = CannonMesh->GetStaticMesh())
+        {
+            FBoxSphereBounds FromBounds = CannonAsset->GetBounds();
+            Start += FromBounds.Origin;  // Negative offset to center
+        }
+       
+
+        
         APowerLine* ShotLine = GetWorld()->SpawnActor<APowerLine>(ShotLineClass, FVector::ZeroVector, FRotator::ZeroRotator);
         if (ShotLine)
         {
