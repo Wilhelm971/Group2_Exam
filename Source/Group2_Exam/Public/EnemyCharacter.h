@@ -61,9 +61,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Damage")
     void TakeDamageCustom(float DamageAmount);
 
-    /** Applies damage specifically from a cannon. */
-    UFUNCTION(BlueprintCallable, Category = "Damage")
-    void TakeDamageFromCannon(float Damage);
+
 
     // =============================================================
     // AI PROPERTIES

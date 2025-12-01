@@ -186,7 +186,7 @@ void APowerCannon::FireAtEnemy(AActor* Target)
     // Apply damage if valid enemy.
     if (AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(Target))
     {
-        Enemy->TakeDamageFromCannon(Damage);
+        Enemy->TakeDamageCustom(Damage);
     }
 
     // Debug line for shot visualization.

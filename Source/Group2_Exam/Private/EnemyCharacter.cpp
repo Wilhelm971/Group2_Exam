@@ -304,8 +304,3 @@ void AEnemyCharacter::TakeDamageCustom(float DamageAmount)
     }
 }
 
-// Damage from cannon (wrapper for custom damage).
-void AEnemyCharacter::TakeDamageFromCannon(float Damage)
-{
-    TakeDamageCustom(Damage);
-}
