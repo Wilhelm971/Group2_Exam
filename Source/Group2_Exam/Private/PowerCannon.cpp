@@ -1,4 +1,6 @@
 #include "PowerCannon.h"
+#include "EnemyCharacter.h"
+
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
@@ -34,6 +36,10 @@ APowerCannon::APowerCannon()
     {
         CannonStaticMeshAsset = MeshAsset.Object;
     }
+
+    // Health Bar Component
+    HealthBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
+    HealthBarComponent->SetupAttachment(RootComponent);
 }
 
 // =============================================================
@@ -59,6 +65,15 @@ void APowerCannon::BeginPlay()
 
     // Start firing timer always, but check conditions inside TryShoot.
     GetWorld()->GetTimerManager().SetTimer(TimerHandle_Fire, this, &APowerCannon::TryShoot, FireInterval, true);
+
+    // Health Bar
+    if (HealthBarComponent)
+    {
+        UUserWidget* WidgetObject = HealthBarComponent->GetWidget();
+        HealthBar = Cast<UW_HealthBar>(WidgetObject);
+    }
+
+    UpdateHealthBar();
 }
 
 // =============================================================
@@ -155,6 +170,7 @@ void APowerCannon::TryShoot()
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), Enemies);
 
     UE_LOG(LogTemp, Log, TEXT("Enemies Found"));
+
 
     AActor* ClosestEnemy = nullptr;
     float ClosestDist = FLT_MAX;
