@@ -31,12 +31,7 @@ APowerCannon::APowerCannon()
     CannonMesh->SetCollisionResponseToAllChannels(ECR_Block);
     CannonMesh->SetGenerateOverlapEvents(true);
 
-    // Load default mesh (cylinder for testing).
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
-    if (MeshAsset.Succeeded())
-    {
-        CannonStaticMeshAsset = MeshAsset.Object;
-    }
+  
 
     // Health Bar Component
     HealthBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
@@ -51,10 +46,7 @@ void APowerCannon::PostInitializeComponents()
 {
     Super::PostInitializeComponents();
 
-    if (CannonMesh && CannonStaticMeshAsset)
-    {
-        CannonMesh->SetStaticMesh(CannonStaticMeshAsset);
-    }
+   
 }
 
 // =============================================================

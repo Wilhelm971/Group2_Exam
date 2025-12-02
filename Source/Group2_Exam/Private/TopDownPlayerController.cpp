@@ -286,6 +286,7 @@ void ATopDownPlayerController::UpdatePreviewPosition()
             // Offset Z to place on surface (adjust based on cannon height).
             PlaceLocation.X -= 50.0f;
             PlaceLocation.Y -= 50.0f;
+            PlaceLocation.Z = 0.0f;
             PreviewCannon->SetActorLocation(PlaceLocation);
             PreviewCannon->SetActorRotation(FRotator::ZeroRotator);  // Fixed rotation.
 

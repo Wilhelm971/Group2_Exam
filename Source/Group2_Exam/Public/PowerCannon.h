@@ -65,8 +65,9 @@ public:
     // MESH AND MATERIALS
     // =============================================================
     /** Static mesh asset for the cannon. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-    UStaticMesh* CannonStaticMeshAsset;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UStaticMeshComponent* CannonMesh;
 
     /** Material for normal (placed) state. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
@@ -111,12 +112,7 @@ public:
     void UpdatePreviewVisuals();
     
 protected:
-    // =============================================================
-    // COMPONENTS
-    // =============================================================
-    /** Mesh component for the cannon. */
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-    UStaticMeshComponent* CannonMesh;
+
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
     UWidgetComponent* HealthBarComponent;
