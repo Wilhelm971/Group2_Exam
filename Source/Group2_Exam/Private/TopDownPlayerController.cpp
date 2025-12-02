@@ -176,7 +176,7 @@ void ATopDownPlayerController::HandleZoom(const FInputActionValue& Value)
 // BUILDING MODE
 // =============================================================
 // Toggles building mode on/off.
-void ATopDownPlayerController::ToggleBuildingMode(const FInputActionValue& Value)
+void ATopDownPlayerController::ToggleBuildingMode()
 {
     if (bBuildingModeActive)
     {
