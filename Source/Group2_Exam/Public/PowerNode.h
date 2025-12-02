@@ -68,6 +68,9 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
     float CurrentHealth;
 
+    UPROPERTY(EditAnywhere)
+    bool bIsPlaced = false;
+
 
 
 

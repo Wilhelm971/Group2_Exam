@@ -17,6 +17,7 @@ APowerCore::APowerCore()
 	PrimaryActorTick.bCanEverTick = false;
 	MaxHealth = 500.0f;  // Higher health for core.
 	CurrentHealth = MaxHealth;
+    bIsPlaced = true;
 
     // Create mesh component.
     CoreMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CoreMesh"));

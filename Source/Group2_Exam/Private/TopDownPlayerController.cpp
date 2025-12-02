@@ -207,6 +207,7 @@ void ATopDownPlayerController::PlaceBuilding(const FInputActionValue& Value)
     // Finalize placement.
     PreviewCannon->SetActorEnableCollision(true);
     PreviewCannon->SetPreviewMode(false);
+    PreviewCannon->bIsPlaced = true;
 
     UE_LOG(LogTemp, Log, TEXT("Cannon placed!"));
 

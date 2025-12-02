@@ -110,6 +110,8 @@ public:
     /** Updates visuals based on placement validity. */
     UFUNCTION(BlueprintCallable, Category = "Building")
     void UpdatePreviewVisuals();
+
+   
     
 protected:
 

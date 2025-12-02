@@ -180,17 +180,9 @@ void AEnemyCharacter::FindClosestTarget()
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerNode::StaticClass(), Nodes);
 
 
-    // Collect buildings (non-cores, including dormants).
-    TArray<AActor*> Buildings;
-    for (AActor* Node : Nodes)
-    {
-        if (!Cast<ADormantPowerCores>(Node))
-        {
-            Buildings.Add(Node);
-        }
-    }
+  
 
-    for (AActor* A : Buildings)
+    for (AActor* A : Nodes)
     {
 
         if (APowerNode* N = Cast<APowerNode>(A))
@@ -200,8 +192,11 @@ void AEnemyCharacter::FindClosestTarget()
                 const float D = FVector::Dist(GetActorLocation(), N->GetActorLocation());
                 if (D < BestDist)
                 {
-                    BestDist = D;
-                    TargetTower = N;
+                    if (N->bIsPlaced)
+                    {
+                        BestDist = D;
+                        TargetTower = N;
+                    }
                 }
             }
         }
