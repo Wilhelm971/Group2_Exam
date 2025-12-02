@@ -1,9 +1,11 @@
 #include "EnemyCharacter.h"
 
+#include "DormantPowerCores.h"
 #include "GameManager.h"
 #include "PowerNode.h"
 #include "PowerCannon.h"
 #include "PowerCore.h"
+#include "DormantPowerCores.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -170,11 +172,27 @@ void AEnemyCharacter::FindClosestTarget()
     TargetTower = nullptr;
     float BestDist = FLT_MAX;
 
+
+  
+
+
     TArray<AActor*> Nodes;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), APowerNode::StaticClass(), Nodes);
 
-    for (AActor* A : Nodes)
+
+    // Collect buildings (non-cores, including dormants).
+    TArray<AActor*> Buildings;
+    for (AActor* Node : Nodes)
     {
+        if (!Cast<ADormantPowerCores>(Node))
+        {
+            Buildings.Add(Node);
+        }
+    }
+
+    for (AActor* A : Buildings)
+    {
+
         if (APowerNode* N = Cast<APowerNode>(A))
         {
             if (IsValid(N))
