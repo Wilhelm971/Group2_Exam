@@ -28,9 +28,12 @@ ANodeActor::ANodeActor(const FObjectInitializer& ObjectInitializer) : Super(Obje
 	SetRootComponent(TileMesh);
 
 	TileMesh->SetMobility(EComponentMobility::Static);
-	TileMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	TileMesh->SetCollisionObjectType(ECC_WorldStatic);  // Explicitly set to WorldStatic
+	TileMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	TileMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	TileMesh->SetCollisionResponseToChannel(ECC_Visibility, ECollisionResponse::ECR_Block);
+	TileMesh->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);  // Add this
+	TileMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);  // Add this
 	TileMesh->bHiddenInGame = false;
 
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollider"));

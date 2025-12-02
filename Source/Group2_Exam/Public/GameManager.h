@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "EnemyCharacter.h"
+#include "EnemyPawn.h"
 #include "GridManager.h"
 #include "GameManager.generated.h"
 

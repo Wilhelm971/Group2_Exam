@@ -72,6 +72,7 @@ void AEnemyCharacter::BeginPlay()
         {
             FVector NewLoc = SnapHit.Location + FVector(0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
             SetActorLocation(NewLoc);
+            GetCharacterMovement()->SetMovementMode(MOVE_Walking);
             UE_LOG(LogTemp, Log, TEXT("%s SNAPPED to ground Z=%.1f"), *GetName(), NewLoc.Z);
         }
     }

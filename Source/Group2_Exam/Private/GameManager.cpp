@@ -71,6 +71,7 @@ void AGameManager::SpawnNextEnemy()
 	AEnemyCharacter* NewEnemy = GetWorld()->SpawnActor<AEnemyCharacter>(EnemyClass, SpawnTransform);
 	if (NewEnemy)
 	{
+		NewEnemy->SpawnDefaultController();
 		NewEnemy->GameManager = this;
 		ActiveEnemies.Add(NewEnemy);
 		EnemiesToSpawnThisWave--;
