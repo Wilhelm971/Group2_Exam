@@ -103,7 +103,7 @@ public:
     UW_HealthBar* HealthBar;
 
     UFUNCTION(BlueprintCallable, Category = "Stats")
-    virtual void UpdateHealthBar();
+    void UpdateHealthBar();
 private:
     // =============================================================
     // PRIVATE HELPERS

@@ -68,6 +68,13 @@ void AEnemyCharacter::BeginPlay()
         GameManager = Cast<AGameManager>(GameManagers[0]);
     }
 
+    // Health Bar
+    if (HealthBarComponent)
+    {
+        UUserWidget* WidgetObject = HealthBarComponent->GetWidget();
+        HealthBar = Cast<UW_HealthBar>(WidgetObject);
+    }
+
 
     // Snap to ground if not already.
     FHitResult SnapHit;
@@ -263,13 +270,26 @@ void AEnemyCharacter::CalculateGridPath()
 
 void AEnemyCharacter::UpdateHealthBar()
 {
+    UE_LOG(LogTemp, Log, TEXT("Test Damage 1"));
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage 1"));
+
     if (!HealthBar) return;
     
-    float Percent = 0.0f;
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage 2"));
     
-    Percent = CurrentHealth / MaxHealth;
+    float EnemyPercent = 0.0f;
 
-    HealthBar->SetProgress(Percent);
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage 3"));
+    
+    EnemyPercent = CurrentHealth / MaxHealth;
+
+    HealthBar->SetProgress(EnemyPercent);
+
+    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage 4"));
+
+    UE_LOG(LogTemp, Log, TEXT("Test Damage 2"));
+
+    
 }
 
 // Gets the next waypoint in the path.
