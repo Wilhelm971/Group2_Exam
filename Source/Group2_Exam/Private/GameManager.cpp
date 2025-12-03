@@ -20,8 +20,11 @@ void AGameManager::BeginPlay()
 
 	if (SpawnTransforms.Num() > 0 && EnemyClass)
 	{
-		StartNewWave();
+		GetWorldTimerManager().SetTimer(NextWaveTimerHandle, this, &AGameManager::StartNewWave, TimeBetweenWaves, true);
 	}
+
+
+	
 }
 
 void AGameManager::Tick(float DeltaTime)
@@ -29,6 +32,10 @@ void AGameManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	ActiveEnemiesCount = ActiveEnemies.Num();
+
+	
+	
+	
 }
 
 void AGameManager::StartNewWave()
@@ -57,11 +64,7 @@ void AGameManager::SpawnNextEnemy()
 		GetWorldTimerManager().ClearTimer(EnemySpawnTimerHandle);
 		bSpawningCurrentWave = false;
 
-		// Check if wave already cleared (all died before spawning finished)
-		if (ActiveEnemies.Num() == 0)
-		{
-			GetWorldTimerManager().SetTimer(NextWaveTimerHandle, this, &AGameManager::StartNewWave, TimeBetweenWaves, false);
-		}
+		
 
 		return;
 	}
@@ -92,10 +95,7 @@ void AGameManager::OnEnemyDeath(AEnemyCharacter* Enemy)
 {
 	ActiveEnemies.RemoveSwap(Enemy);
 
-	if (ActiveEnemies.Num() == 0 && !bSpawningCurrentWave)
-	{
-		GetWorldTimerManager().SetTimer(NextWaveTimerHandle, this, &AGameManager::StartNewWave, TimeBetweenWaves, false);
-	}
+	
 }
 
 void AGameManager::AutoGenerateSpawnPoints()

@@ -6,6 +6,7 @@
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
 #include "PowerLine.h"
+#include "TopDownPlayerController.h"
 #include "EnemyCharacter.h"
 
 // =============================================================
@@ -126,9 +127,17 @@ void APowerCannon::CheckPlacementValidity()
 // Updates material based on placement validity.
 void APowerCannon::UpdatePreviewVisuals()
 {
+
     if (!bIsPreviewMode) return;
 
-    UMaterialInterface* MatToUse = bPlacementValid ? PreviewValidMaterial : PreviewInvalidMaterial;
+    // Get player controller to check coins.
+    ATopDownPlayerController* PC = Cast<ATopDownPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+    bool bEnoughCoins = PC ? (PC->CurrentCoins >= PC->CannonCost) : false;
+
+    // Overall validity: position valid AND enough coins.
+    bool bOverallValid = bPlacementValid && bEnoughCoins;
+
+    UMaterialInterface* MatToUse = bOverallValid ? PreviewValidMaterial : PreviewInvalidMaterial;
     if (MatToUse)
     {
         CannonMesh->SetMaterial(0, MatToUse);
