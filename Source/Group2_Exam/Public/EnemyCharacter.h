@@ -52,7 +52,7 @@ public:
 
     // Bounty for killing enemies
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-    float Bounty = 25.0f;
+    float Bounty = 20.0f;
 
     /** Reference to GameManager for wave tracking. */
     UPROPERTY()
