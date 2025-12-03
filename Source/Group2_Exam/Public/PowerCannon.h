@@ -52,11 +52,11 @@ public:
 
     /** Range for detecting and attacking enemies. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
-    float AttackRange = 350.0f;
+    float AttackRange = 500.0f;
 
     /** Damage dealt per shot. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
-    float Damage = 10.0f;
+    float Damage = 30.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
     TSubclassOf<APowerLine> ShotLineClass;
@@ -94,7 +94,7 @@ public:
 
     /** Minimum distance to other nodes for valid placement. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building", meta = (ClampMin = "50.0"))
-    float MinPlacementDistance = 250.0f;
+    float MinPlacementDistance = 300.0f;
 
     // =============================================================
     // BUILDING FUNCTIONS

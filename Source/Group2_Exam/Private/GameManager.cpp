@@ -2,11 +2,14 @@
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Engine/Engine.h"
+
 #include "Math/UnrealMathUtility.h"
 
 AGameManager::AGameManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	TimeBetweenWaves = (TimeBetweenEnemiesInWave * EnemiesToSpawnThisWave) + 5.0f;
 }
 
 void AGameManager::BeginPlay()
@@ -31,6 +34,13 @@ void AGameManager::Tick(float DeltaTime)
 void AGameManager::StartNewWave()
 {
 	CurrentWaveNum++;
+
+
+	if (CurrentWaveNum == 7)
+	{
+		EnemiesPerWaveIncrement++;
+	}
+	
 	EnemiesToSpawnThisWave = BaseEnemiesPerWave + (CurrentWaveNum - 1) * EnemiesPerWaveIncrement;
 	bSpawningCurrentWave = true;
 	ActiveEnemies.Empty();

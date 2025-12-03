@@ -40,7 +40,7 @@ public:
     // =============================================================
     /** Maximum health of the enemy. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-    float MaxHealth = 100.f;
+    float MaxHealth;
 
     /** Current health of the enemy. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
@@ -52,7 +52,7 @@ public:
 
     // Bounty for killing enemies
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-    float Bounty = 20.0f;
+    float Bounty = 25.0f;
 
     /** Reference to GameManager for wave tracking. */
     UPROPERTY()
@@ -76,7 +76,7 @@ public:
 
     /** Range at which the enemy can attack the target. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-    float AttackRange = 150.f;
+    float AttackRange = 200.f;
 
     /** Interval for recalculating the path to the target. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")

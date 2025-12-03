@@ -167,7 +167,7 @@ void UPowerNetworkSubsystem::PulseAllCores()
         {
             if (APowerCore* Core = Cast<APowerCore>(Actor))
             {
-                DistributePowerFromCore(Core, 3000.0f);
+                DistributePowerFromCore(Core, PowerPerPulse);
             }
         }
 

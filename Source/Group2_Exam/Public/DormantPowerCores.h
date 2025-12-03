@@ -42,7 +42,7 @@ public:
     // =============================================================
     /** Power required to activate into a PowerCore. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power")
-    float ActivationThreshold = 500.0f;
+    float ActivationThreshold = 750.0f;
 
     /** Current accumulated power. */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Power")

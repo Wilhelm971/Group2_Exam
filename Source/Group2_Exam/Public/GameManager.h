@@ -44,7 +44,7 @@ public:
 	// =============================================================
 	/** Base number of enemies in wave 1. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waves")
-	int32 BaseEnemiesPerWave = 5;
+	int32 BaseEnemiesPerWave = 4;
 
 	/** Additional enemies added each wave. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waves")
@@ -59,7 +59,7 @@ public:
 
 	/** Delay after a wave ends (all dead) before next wave starts. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timing")
-	float TimeBetweenWaves = 20.0f;
+	float TimeBetweenWaves;
 
 	// =============================================================
 	// RUNTIME INFO (Blueprint readable)

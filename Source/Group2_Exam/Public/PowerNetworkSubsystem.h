@@ -91,6 +91,8 @@ private:
 	UPROPERTY()
 	TArray<APowerLine*> ActivePowerLines;
 
+	float PowerPerPulse = 4000.0f;
+
 
 
 

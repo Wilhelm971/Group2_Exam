@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GridManager.h"
+#include "GameManager.h"
 #include "TopDownPlayerController.h"
 
 
@@ -26,7 +27,11 @@
 AEnemyCharacter::AEnemyCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
-    CurrentHealth = MaxHealth;
+
+    MaxHealth = 100.0f;
+    
+
+    
 
     // Movement setup.
     UCharacterMovementComponent* MoveComp = GetCharacterMovement();
@@ -67,6 +72,10 @@ void AEnemyCharacter::BeginPlay()
     {
         GameManager = Cast<AGameManager>(GameManagers[0]);
     }
+
+    CurrentHealth = MaxHealth;
+
+    
 
     // Health Bar
     if (HealthBarComponent)

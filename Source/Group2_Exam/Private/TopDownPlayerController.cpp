@@ -26,7 +26,7 @@ ATopDownPlayerController::ATopDownPlayerController()
     bEnableClickEvents = true;
     bEnableMouseOverEvents = true;
 
-    CurrentCoins = 100.0f;
+    CurrentCoins = 350.0f;
 }
 
 // =============================================================

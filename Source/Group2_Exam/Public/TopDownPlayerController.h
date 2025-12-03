@@ -69,11 +69,11 @@ public:
 
     /** Cost to place a cannon. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Economy")
-    float CannonCost = 50.0f;
+    float CannonCost = 40.0f;
 
     /** Coins earned per second. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Economy")
-    float CoinsPerSecond = 7.0f;
+    float CoinsPerSecond = 5.0f;
 
     // =============================================================
     // UI
