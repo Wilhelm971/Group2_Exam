@@ -5,6 +5,11 @@
 #include "TimerManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
+/**
+ * @brief Default constructor for APowerLine.
+ * 
+ * Sets up spline and loads default mesh.
+ */
 APowerLine::APowerLine()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -21,6 +26,11 @@ APowerLine::APowerLine()
     }
 }
 
+/**
+ * @brief Called after components are initialized.
+ * 
+ * Creates and sets up the spline mesh component with dynamic material.
+ */
 void APowerLine::PostInitializeComponents()
 {
     Super::PostInitializeComponents();
@@ -40,6 +50,16 @@ void APowerLine::PostInitializeComponents()
     }
 }
 
+/**
+ * @brief Sets the line from start to end with color and optional lifetime.
+ * 
+ * Configures the spline for a straight line and updates the mesh.
+ * 
+ * @param Start Starting position.
+ * @param End Ending position.
+ * @param Color Line color.
+ * @param Lifetime Time before destruction (-1 for persistent).
+ */
 void APowerLine::SetLine(const FVector& Start, const FVector& End, const FColor& Color, float Lifetime)
 {
     // Clear and set spline points (straight line)
@@ -69,6 +89,11 @@ void APowerLine::SetLine(const FVector& Start, const FVector& End, const FColor&
     }
 }
 
+/**
+ * @brief Destroys the actor after its lifetime.
+ * 
+ * Called by timer if lifetime is set.
+ */
 void APowerLine::SelfDestroy()
 {
     Destroy();

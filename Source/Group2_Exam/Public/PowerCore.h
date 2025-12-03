@@ -1,3 +1,8 @@
+/**
+ * @file PowerCore.h
+ * @brief Header file for the APowerCore class, which represents the central power source in the network.
+ */
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,10 +14,10 @@ class UStaticMesh;
 class UMaterialInterface;
 
 /**
- * APowerCore
+ * @class APowerCore
+ * @brief Central power source node that periodically emits power pulses.
  * 
- * Central power source node that periodically emits power pulses.
- * Extends APowerNode with pulsing behavior.
+ * Extends APowerNode with pulsing behavior to distribute power throughout the network.
  */
 UCLASS()
 class GROUP2_EXAM_API APowerCore : public APowerNode
@@ -23,35 +28,66 @@ public:
 	// =============================================================
 	// CONSTRUCTOR AND OVERRIDES
 	// =============================================================
+	/**
+	 * @brief Default constructor for APowerCore.
+	 * 
+	 * Initializes the core with default properties.
+	 */
 	APowerCore();
 
 protected:
+	/**
+	 * @brief Called when the game starts or when spawned.
+	 * 
+	 * Sets up the pulsing timer or initial state.
+	 */
 	virtual void BeginPlay() override;
 
 public:
+    /**
+     * @brief Called after all components have been initialized.
+     * 
+     * Handles post-initialization setup for the core.
+     */
     virtual void PostInitializeComponents() override;
 
 	// =============================================================
 	// POWER PROPERTIES
 	// =============================================================
-	/** Interval for emitting power pulses. */
+	/** 
+	 * @brief Interval for emitting power pulses.
+	 * 
+	 * Editable in the editor and blueprints.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power")
 	float PulseInterval = 5.0f;
 
 	// =============================================================
 	// POWER FUNCTIONS
 	// =============================================================
-	/** Emits a power pulse to the network. */ // Depricated
+	/** 
+	 * @brief Emits a power pulse to the network. (Deprecated)
+	 * 
+	 * This function is marked as deprecated and may be removed in future versions.
+	 */
 	//void EmitPowerPulse();
 
     // =============================================================
     // MESH AND MATERIALS
     // =============================================================
-    /** Static mesh asset for the core. */
+    /** 
+     * @brief Static mesh asset for the core's visual representation.
+     * 
+     * Editable in the editor and blueprints.
+     */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
     UStaticMesh* CoreStaticMeshAsset;
 
-    /** Material for the core. */
+    /** 
+     * @brief Material applied to the core.
+     * 
+     * Editable in the editor and blueprints.
+     */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
     UMaterialInterface* CoreMaterial;
 
@@ -59,7 +95,11 @@ protected:
     // =============================================================
     // COMPONENTS
     // =============================================================
-    /** Mesh component for the core. */
+    /** 
+     * @brief Mesh component for rendering the core.
+     * 
+     * Visible in the editor but read-only in blueprints.
+     */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UStaticMeshComponent* CoreMesh;
 
@@ -67,6 +107,8 @@ private:
 	// =============================================================
 	// PRIVATE DATA
 	// =============================================================
-	/** Timer handle for pulse interval. */
+	/** 
+	 * @brief Timer handle for managing the pulse interval. (Commented out)
+	 */
 	//FTimerHandle TimerHandle_Pulse;
 };

@@ -1,3 +1,7 @@
+/**
+* @file MyUserWidget.h
+ * @brief Header file for the UMyUserWidget class, a custom user widget for the game's UI.
+ */
 
 #pragma once
 
@@ -6,9 +10,10 @@
 #include "MyUserWidget.generated.h"
 
 /**
- * UMyUserWidget
- *
- * Custom user widget class for the game's UI.
+ * @class UMyUserWidget
+ * @brief Custom user widget class for the game's UI.
+ * 
+ * This class can be extended in blueprints to create custom UI elements.
  */
 UCLASS()
 class GROUP2_EXAM_API UMyUserWidget : public UUserWidget

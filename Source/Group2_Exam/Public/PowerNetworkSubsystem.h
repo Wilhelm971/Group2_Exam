@@ -1,3 +1,7 @@
+/**
+ * @file PowerNetworkSubsystem.h
+ * @brief Header file for the UPowerNetworkSubsystem class, managing the power network graph.
+ */
 
 #pragma once
 
@@ -10,10 +14,10 @@ class APowerNode;  // Forward declaration
 class APowerCore;   // Forward declaration
 
 /**
- * UPowerNetworkSubsystem
+ * @class UPowerNetworkSubsystem
+ * @brief World subsystem for managing the power network graph.
  * 
- * World subsystem for managing the power network graph.
- * Handles node registration, connections, and power propagation.
+ * Handles node registration, connections, and power propagation with visualization.
  */
 UCLASS(Blueprintable)
 class GROUP2_EXAM_API UPowerNetworkSubsystem : public UWorldSubsystem
@@ -24,23 +28,48 @@ public:
 	// =============================================================
 	// OVERRIDES
 	// =============================================================
+	/**
+	 * @brief Initializes the subsystem.
+	 * 
+	 * @param Collection The subsystem collection.
+	 */
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	// =============================================================
 	// PUBLIC FUNCTIONS
 	// =============================================================
-	/** Registers a new node in the network. */
+	/**
+	 * @brief Registers a new node in the network.
+	 * 
+	 * @param Node The node to register.
+	 */
 	void RegisterNode(APowerNode* Node);
 
-	/** Unregisters a node from the network. */
+	/**
+	 * @brief Unregisters a node from the network.
+	 * 
+	 * @param Node The node to unregister.
+	 */
 	void UnregisterNode(APowerNode* Node);
 
-	/** Rebuilds connections between all registered nodes. */
+	/**
+	 * @brief Rebuilds connections between all registered nodes.
+	 */
 	void RebuildConnections();
 
-	/** Distributes power from a specific core to its connected buildings. */
+	/**
+	 * @brief Distributes power from a specific core to its connected buildings.
+	 * 
+	 * @param SourceCore The source power core.
+	 * @param Amount The amount of power to distribute.
+	 */
 	void DistributePowerFromCore(APowerCore* SourceCore, float Amount);
 
+	/** 
+	 * @brief Class of the power line for visualization.
+	 * 
+	 * Editable in the editor and blueprints.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visualization")
 	TSubclassOf<APowerLine> PowerLineClass;
 
@@ -50,47 +79,84 @@ private:
 	// =============================================================
 	// PRIVATE FUNCTIONS
 	// =============================================================
-	/** Gets the connected component for a starting node. */
+	/**
+	 * @brief Gets the connected component for a starting node.
+	 * 
+	 * @param StartNode The starting node.
+	 * @return Set of connected nodes.
+	 */
 	TSet<APowerNode*> GetConnectedComponent(APowerNode* StartNode);
 
+	/**
+	 * @brief Pulses all power cores in the network.
+	 */
 	void PulseAllCores();
 
 	
+	/**
+	 * @brief Starts the power visualization process.
+	 */
 	void StartPowerVisualization();
 
+	/**
+	 * @brief Processes a single step in the visualization propagation.
+	 */
 	void ProcessVisualizationStep();
 
 	
 	// =============================================================
 	// PRIVATE DATA
 	// =============================================================
-	/** Adjacency list for node connections. */
+	/** 
+	 * @brief Adjacency list for node connections.
+	 */
 	TMap<APowerNode*, TArray<APowerNode*>> PowerGraph;
 
-	/** List of all registered power nodes. */
+	/** 
+	 * @brief List of all registered power nodes.
+	 */
 	UPROPERTY()
 	TArray<APowerNode*> AllNodes;
 
-	/** Timer handle for global pulse. */
+	/** 
+	 * @brief Timer handle for global pulse.
+	 */
 	FTimerHandle GlobalPulseTimer;
 
-	/** Timer handle for propagation steps. */
+	/** 
+	 * @brief Timer handle for propagation steps.
+	 */
 	FTimerHandle PropagationTimer;
 
-	/** Queue for pending propagation steps (From, Current). */
+	/** 
+	 * @brief Queue for pending propagation steps (From, Current).
+	 */
 	TQueue<TPair<APowerNode*, APowerNode*>> PropagationQueue;
 
-	/** Set of visited nodes during propagation. */
+	/** 
+	 * @brief Set of visited nodes during propagation.
+	 */
 	TSet<APowerNode*> Visited;
 
-	/** Delay between propagation steps for visualization (in seconds). */
+	/** 
+	 * @brief Delay between propagation steps for visualization (in seconds).
+	 */
 	float PropagationDelay = 0.2f;
 
+	/** 
+	 * @brief Flag indicating if propagation is in progress.
+	 */
 	bool bIsPropagating = false;
 
+	/** 
+	 * @brief List of active power line visualizations.
+	 */
 	UPROPERTY()
 	TArray<APowerLine*> ActivePowerLines;
 
+	/** 
+	 * @brief Amount of power per pulse.
+	 */
 	float PowerPerPulse = 2000.0f;
 
 

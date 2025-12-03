@@ -6,6 +6,9 @@
 #include "Components/ProgressBar.h"
 #include "MyHealthBar.generated.h"
 
+/*
+ * This is an old class, that isn't used anymore. We didn't have time to delete it, so just ignore it.
+ */
 UCLASS()
 class GROUP2_EXAM_API UMyHealthBar : public UMyUserWidget
 {

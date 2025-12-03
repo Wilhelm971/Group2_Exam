@@ -5,13 +5,22 @@
 
 #include "Math/UnrealMathUtility.h"
 
+/**
+ * @brief Default constructor for AGameManager.
+ * 
+ * Initializes wave timing based on enemies and intervals.
+ */
 AGameManager::AGameManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	TimeBetweenWaves = (TimeBetweenEnemiesInWave * EnemiesToSpawnThisWave) + 15.0f;
 }
-
+/**
+ * @brief Called when the game starts.
+ * 
+ * Auto-generates spawn points and sets up wave timer if conditions met.
+ */
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
@@ -27,6 +36,13 @@ void AGameManager::BeginPlay()
 	
 }
 
+/**
+ * @brief Called every frame.
+ * 
+ * Updates active enemy count.
+ * 
+ * @param DeltaTime Time since last frame.
+ */
 void AGameManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -38,6 +54,11 @@ void AGameManager::Tick(float DeltaTime)
 	
 }
 
+/**
+ * @brief Starts a new wave of enemies.
+ * 
+ * Increments wave number, calculates enemies to spawn, and starts spawning timer.
+ */
 void AGameManager::StartNewWave()
 {
 	CurrentWaveNum++;
@@ -57,6 +78,11 @@ void AGameManager::StartNewWave()
 	UE_LOG(LogTemp, Warning, TEXT("🌊 WAVE %d STARTED! Spawning %d enemies"), CurrentWaveNum, EnemiesToSpawnThisWave);
 }
 
+/**
+ * @brief Spawns the next enemy in the current wave.
+ * 
+ * Selects a random spawn point and spawns an enemy if available.
+ */
 void AGameManager::SpawnNextEnemy()
 {
 	if (EnemiesToSpawnThisWave <= 0)
@@ -91,6 +117,13 @@ void AGameManager::SpawnNextEnemy()
 	}
 }
 
+/**
+ * @brief Called when an enemy dies.
+ * 
+ * Removes the enemy from the active list.
+ * 
+ * @param Enemy The enemy that died.
+ */
 void AGameManager::OnEnemyDeath(AEnemyCharacter* Enemy)
 {
 	ActiveEnemies.RemoveSwap(Enemy);
@@ -98,6 +131,11 @@ void AGameManager::OnEnemyDeath(AEnemyCharacter* Enemy)
 	
 }
 
+/**
+ * @brief Automatically generates spawn points along the grid's left edge.
+ * 
+ * Uses GridManager to determine positions if no spawn transforms are set.
+ */
 void AGameManager::AutoGenerateSpawnPoints()
 {
 	if (SpawnTransforms.Num() > 0) return;

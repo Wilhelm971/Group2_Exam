@@ -1,3 +1,8 @@
+/**
+ * @file DormantPowerCores.h
+ * @brief Header file for the ADormantPowerCores class, representing inactive power cores that activate upon power accumulation.
+ */
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,9 +14,9 @@ class UStaticMesh;
 class UMaterialInterface;
 
 /**
- * ADormantPowerCores
+ * @class ADormantPowerCores
+ * @brief Dormant power core that accumulates power and activates into a PowerCore when threshold is reached.
  * 
- * Dormant power core that accumulates power and activates into a PowerCore when threshold is reached.
  * Extends APowerNode to participate in the power network.
  */
 UCLASS()
@@ -23,39 +28,75 @@ public:
     // =============================================================
     // CONSTRUCTOR AND OVERRIDES
     // =============================================================
+    /**
+     * @brief Default constructor for ADormantPowerCores.
+     * 
+     * Initializes default properties.
+     */
     ADormantPowerCores();
 
 protected:
+    /**
+     * @brief Called when the game starts or when spawned.
+     * 
+     * Sets up initial state.
+     */
     virtual void BeginPlay() override;
 
 public:
+    /**
+     * @brief Called after all components have been initialized.
+     * 
+     * Handles mesh and material setup.
+     */
     virtual void PostInitializeComponents() override;
 
     // =============================================================
     // POWER OVERRIDES
     // =============================================================
-    /** Receives and accumulates power amount. Activates if threshold reached. */
+    /** 
+     * @brief Receives and accumulates power amount. Activates if threshold reached.
+     * 
+     * Overrides base to handle accumulation.
+     * @param Amount The power amount received.
+     */
     virtual void ReceivePowerAmount(float Amount) override;
 
     // =============================================================
     // PROPERTIES
     // =============================================================
-    /** Power required to activate into a PowerCore. */
+    /** 
+     * @brief Power required to activate into a PowerCore.
+     * 
+     * Editable in the editor and blueprints.
+     */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power")
     float ActivationThreshold = 750.0f;
 
-    /** Current accumulated power. */
+    /** 
+     * @brief Current accumulated power.
+     * 
+     * Visible in the editor but read-only in blueprints.
+     */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Power")
     float AccumulatedPower = 0.0f;
 
     // =============================================================
     // MESH AND MATERIALS
     // =============================================================
-    /** Static mesh asset for the dormant core. */
+    /** 
+     * @brief Static mesh asset for the dormant core.
+     * 
+     * Editable in the editor and blueprints.
+     */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
     UStaticMesh* DormantStaticMeshAsset;
 
-    /** Material for the dormant core. */
+    /** 
+     * @brief Material for the dormant core.
+     * 
+     * Editable in the editor and blueprints.
+     */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Materials")
     UMaterialInterface* DormantMaterial;
 
@@ -63,7 +104,11 @@ protected:
     // =============================================================
     // COMPONENTS
     // =============================================================
-    /** Mesh component for the dormant core. */
+    /** 
+     * @brief Mesh component for the dormant core.
+     * 
+     * Visible in the editor but read-only in blueprints.
+     */
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UStaticMeshComponent* DormantMesh;
 
@@ -71,9 +116,13 @@ private:
     // =============================================================
     // PRIVATE FUNCTIONS
     // =============================================================
-    /** Activates this dormant core into a PowerCore and checks win condition. */
+    /**
+     * @brief Activates this dormant core into a PowerCore and checks win condition.
+     */
     void Activate();
 
-    /** Checks if win condition is met (5 active PowerCores). */
+    /**
+     * @brief Checks if win condition is met (5 active PowerCores).
+     */
     void CheckWinCondition();
 };

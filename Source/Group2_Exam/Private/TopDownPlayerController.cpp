@@ -68,7 +68,11 @@ void ATopDownPlayerController::BeginPlay()
 
 }
 
-
+/**
+ * @brief Gets the count of active power cores in the world.
+ * 
+ * @return The number of active PowerCore actors.
+ */
 int32 ATopDownPlayerController::GetActiveCoreCount() const
 {
     TArray<AActor*> Cores;
@@ -76,6 +80,11 @@ int32 ATopDownPlayerController::GetActiveCoreCount() const
     return Cores.Num();
 }
 
+/**
+ * @brief Gets the combined health percentage of all active power cores.
+ * 
+ * @return The average health percentage (0.0 to 1.0) or 0 if no cores.
+ */
 float ATopDownPlayerController::GetCoreHealthPercent() const
 {
     TArray<AActor*> Cores;

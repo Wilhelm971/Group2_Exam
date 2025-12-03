@@ -1,3 +1,8 @@
+/**
+* @file TopDownCameraPawn.h
+ * @brief Header file for the ATopDownCameraPawn class, handling top-down camera setup.
+ */
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -7,9 +12,9 @@
 #include "TopDownCameraPawn.generated.h"
 
 /**
- * ATopDownCameraPawn
+ * @class ATopDownCameraPawn
+ * @brief Custom pawn for handling top-down camera setup with spring arm.
  * 
- * Custom pawn for handling top-down camera setup with spring arm.
  * Used for isometric/top-down views in the game.
  */
 UCLASS()
@@ -21,17 +26,27 @@ public:
 	// =============================================================
 	// CONSTRUCTOR
 	// =============================================================
-	/** Sets default values for this pawn's properties. */
+	/** 
+	 * @brief Sets default values for this pawn's properties.
+	 */
 	ATopDownCameraPawn();
 
 	// =============================================================
 	// COMPONENTS
 	// =============================================================
-	/** Spring arm component for camera positioning and zooming. */
+	/** 
+	 * @brief Spring arm component for camera positioning and zooming.
+	 * 
+	 * Visible in the editor but read-only in blueprints.
+	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USpringArmComponent* CameraBoom;
 
-	/** Camera component for top-down view. */
+	/** 
+	 * @brief Camera component for top-down view.
+	 * 
+	 * Visible in the editor but read-only in blueprints.
+	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCameraComponent* TopDownCamera;
 };

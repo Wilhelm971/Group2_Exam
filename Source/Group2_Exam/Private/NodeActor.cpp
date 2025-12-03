@@ -1,4 +1,3 @@
-
 #include "NodeActor.h"
 #include "Components/TextRenderComponent.h"
 #include "PowerCannon.h"
@@ -44,6 +43,13 @@ ANodeActor::ANodeActor(const FObjectInitializer& ObjectInitializer) : Super(Obje
 	CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ANodeActor::OnCollisionEnd);
 }
 
+/**
+ * @brief Called when the actor is constructed in the editor or at runtime.
+ * 
+ * Creates a dynamic material and applies the initial state color.
+ * 
+ * @param Transform The transform of the actor.
+ */
 void ANodeActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
@@ -57,6 +63,13 @@ void ANodeActor::OnConstruction(const FTransform& Transform)
 	SetState(bIsWalkable ? ENodeState::Default : ENodeState::Blocked);
 }
 
+/**
+ * @brief Applies a color to the node's dynamic material.
+ * 
+ * Updates the "Color" vector parameter in the material.
+ * 
+ * @param Color The linear color to apply.
+ */
 void ANodeActor::ApplyColor(const FLinearColor& Color)
 {
 	if (DynamicMaterial)
@@ -65,6 +78,18 @@ void ANodeActor::ApplyColor(const FLinearColor& Color)
 	}
 }
 
+/**
+ * @brief Handles overlap begin events for the collision box.
+ * 
+ * Changes node state to Target if overlapping with a PowerNode.
+ * 
+ * @param ColliderComp The overlapping component.
+ * @param OtherActor The other actor involved.
+ * @param OtherComp The other component.
+ * @param OtherBodyIndex The body index.
+ * @param bFromSweep Whether from a sweep.
+ * @param SweepResult The sweep result.
+ */
 void ANodeActor::OnCollisionOverlap(
 	UPrimitiveComponent* ColliderComp,
 	AActor* OtherActor,
@@ -81,6 +106,16 @@ void ANodeActor::OnCollisionOverlap(
 	}
 }
 
+/**
+ * @brief Handles overlap end events for the collision box.
+ * 
+ * Reverts node state to Default if no longer overlapping with a PowerNode.
+ * 
+ * @param ColliderComp The overlapping component.
+ * @param OtherActor The other actor involved.
+ * @param OtherComp The other component.
+ * @param OtherBodyIndex The body index.
+ */
 void ANodeActor::OnCollisionEnd(UPrimitiveComponent* ColliderComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex)
 {
@@ -92,6 +127,13 @@ void ANodeActor::OnCollisionEnd(UPrimitiveComponent* ColliderComp, AActor* Other
 }
 
 
+/**
+ * @brief Sets the node's state and applies the corresponding color.
+ * 
+ * Uses a switch to map states to specific colors.
+ * 
+ * @param NewState The new state to apply.
+ */
 void ANodeActor::SetState(ENodeState NewState)
 {
 	CurrentState = NewState;
@@ -124,6 +166,13 @@ void ANodeActor::SetState(ENodeState NewState)
 	}
 }
 
+/**
+ * @brief Called when the actor is clicked.
+ * 
+ * Toggles walkability and updates the state accordingly.
+ * 
+ * @param ButtonPressed The button or key pressed.
+ */
 void ANodeActor::NotifyActorOnClicked(FKey ButtonPressed)
 {
 	Super::NotifyActorOnClicked(ButtonPressed);
