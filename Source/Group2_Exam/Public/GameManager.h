@@ -44,7 +44,7 @@ public:
 	// =============================================================
 	/** Base number of enemies in wave 1. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waves")
-	int32 BaseEnemiesPerWave = 4;
+	int32 BaseEnemiesPerWave = 2;
 
 	/** Additional enemies added each wave. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Waves")

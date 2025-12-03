@@ -9,7 +9,7 @@ AGameManager::AGameManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	TimeBetweenWaves = (TimeBetweenEnemiesInWave * EnemiesToSpawnThisWave) + 5.0f;
+	TimeBetweenWaves = (TimeBetweenEnemiesInWave * EnemiesToSpawnThisWave) + 15.0f;
 }
 
 void AGameManager::BeginPlay()
@@ -43,7 +43,7 @@ void AGameManager::StartNewWave()
 	CurrentWaveNum++;
 
 
-	if (CurrentWaveNum == 7)
+	if (CurrentWaveNum == 10)
 	{
 		EnemiesPerWaveIncrement++;
 	}
