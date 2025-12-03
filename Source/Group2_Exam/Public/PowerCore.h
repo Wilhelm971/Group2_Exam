@@ -41,7 +41,7 @@ public:
 	// =============================================================
 	// POWER FUNCTIONS
 	// =============================================================
-	/** Emits a power pulse to the network. */
+	/** Emits a power pulse to the network. */ // Depricated
 	//void EmitPowerPulse();
 
     // =============================================================

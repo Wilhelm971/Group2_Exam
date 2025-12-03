@@ -29,7 +29,7 @@ APowerCore::APowerCore()
     CoreMesh->SetGenerateOverlapEvents(true);
 
     // Load default mesh (cylinder for testing).
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
     if (MeshAsset.Succeeded())
     {
         CoreStaticMeshAsset = MeshAsset.Object;
