@@ -12,6 +12,7 @@
 #include "GridManager.h"
 #include "TopDownPlayerController.h"
 
+
 // =============================================================
 // CLASS DESCRIPTION
 // =============================================================
@@ -44,6 +45,11 @@ AEnemyCharacter::AEnemyCharacter()
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+
+    // Healthbar setup
+    HealthBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
+    HealthBarComponent->SetupAttachment(RootComponent);
+    
 }
 
 // =============================================================
@@ -92,6 +98,7 @@ void AEnemyCharacter::BeginPlay()
     }
 
     FindClosestTarget();
+    UpdateHealthBar();
 }
 
 // =============================================================
@@ -254,6 +261,17 @@ void AEnemyCharacter::CalculateGridPath()
     
 }
 
+void AEnemyCharacter::UpdateHealthBar()
+{
+    if (!HealthBar) return;
+    
+    float Percent = 0.0f;
+    
+    Percent = CurrentHealth / MaxHealth;
+
+    HealthBar->SetProgress(Percent);
+}
+
 // Gets the next waypoint in the path.
 FVector AEnemyCharacter::GetNextPathPoint()
 {
@@ -300,6 +318,8 @@ void AEnemyCharacter::TakeDamageCustom(float DamageAmount)
     if (DamageAmount <= 0.f) return;
     
     CurrentHealth -= DamageAmount;
+
+    UpdateHealthBar();
     if (CurrentHealth <= 0.f)
     {
         // Reward coins
