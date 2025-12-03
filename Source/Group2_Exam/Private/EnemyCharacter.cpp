@@ -280,24 +280,17 @@ void AEnemyCharacter::CalculateGridPath()
 void AEnemyCharacter::UpdateHealthBar()
 {
     UE_LOG(LogTemp, Log, TEXT("Test Damage 1"));
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage 1"));
 
     if (!HealthBar) return;
     
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage 2"));
-    
     float EnemyPercent = 0.0f;
-
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage 3"));
     
     EnemyPercent = CurrentHealth / MaxHealth;
 
     HealthBar->SetProgress(EnemyPercent);
 
-    GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Damage 4"));
 
     UE_LOG(LogTemp, Log, TEXT("Test Damage 2"));
-
     
 }
 

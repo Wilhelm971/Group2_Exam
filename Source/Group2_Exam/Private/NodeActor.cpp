@@ -4,7 +4,6 @@
 #include "PowerCannon.h"
 #include "EnemyCharacter.h"
 #include "Components/BoxComponent.h"
-#include "Interfaces/IPluginManager.h"
 
 APowerCannon* PowerCannon;
 AEnemyCharacter* EnemyCharacter;
@@ -77,7 +76,7 @@ void ANodeActor::OnCollisionOverlap(
 {
 	if (OtherActor == PowerNode && (OtherActor != this) && OtherComp) 
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap Begin"));
+		
 		SetState(ENodeState::Target);
 	}
 }
@@ -87,7 +86,7 @@ void ANodeActor::OnCollisionEnd(UPrimitiveComponent* ColliderComp, AActor* Other
 {
 	if (OtherActor == PowerNode && (OtherActor != this) && OtherComp) 
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Overlap End"));
+		
 		SetState(ENodeState::Default);
 	}
 }
