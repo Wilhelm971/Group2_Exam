@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "PowerNode.h"
 #include "PowerCannon.h"
+#include "Components/WidgetComponent.h"
+#include "W_HealthBar.h"
 #include "GameFramework/Character.h"
 #include "EnemyCharacter.generated.h"
 
@@ -86,11 +88,22 @@ public:
     /** Calculates A* path to the target using GridManager. */
     void CalculateGridPath();
 
+    /** Check bools for other actors */
     UPROPERTY()
     bool bDoPathfinding = true;
 
     UPROPERTY(VisibleAnywhere)
     bool bIsTowerDestroyed = false;
+
+    /**HealthBar */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+    UWidgetComponent* HealthBarComponent;
+
+    UPROPERTY()
+    UW_HealthBar* HealthBar;
+
+    UFUNCTION(BlueprintCallable, Category = "Stats")
+    virtual void UpdateHealthBar();
 private:
     // =============================================================
     // PRIVATE HELPERS
