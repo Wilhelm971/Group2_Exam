@@ -37,6 +37,8 @@ void ATopDownPlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
+    SetPause(false);
+
     // Add enhanced input mapping context.
     if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
         GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
